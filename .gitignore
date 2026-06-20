@@ -1,0 +1,16 @@
+/vendor/
+/composer.lock
+.phpunit.result.cache
+
+# Entornos y logs
+.env
+.env.backup
+*.log
+
+# Editores y SO
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
