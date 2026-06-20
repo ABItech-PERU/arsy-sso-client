@@ -21,19 +21,19 @@ Dependiendo de dónde tengas alojado este paquete, existen 3 formas de instalarl
   composer require arsy/sso-client
   ```
 
-- **Opción B: GitHub**
-  Agrega el repositorio a tu `composer.json`:
+- **Opción B: GitHub (Para repositorios privados)**
+  Agrega el repositorio a tu `composer.json` para que Composer lo encuentre allí:
   ```json
   "repositories": [
       {
           "type": "vcs",
-          "url": "https://github.com/tu-usuario/arsy-sso-client"
+          "url": "https://github.com/ABItech-PERU/arsy-sso-client"
       }
   ]
   ```
-  Luego instala indicando la rama (`dev-` + nombre):
+  Luego instala indicando la versión que quieras usar (ej. `^1.0.0` para la versión 1 y sus parches):
   ```bash
-  composer require arsy/sso-client:dev-main
+  composer require arsy/sso-client:"^1.0.0"
   ```
 
 - **Opción C: Local (Desarrollo)**
