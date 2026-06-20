@@ -154,7 +154,25 @@ public function handle(SsoUserAuthenticated $event): void
 ### ¿Cómo registrar el Listener?
 
 **👉 Si usas Laravel 11 o superior (Recomendado)**
-¡No tienes que hacer nada más! Gracias al **Event Discovery** automático de Laravel 11, al tipar la variable `$event` con la clase `SsoUserAuthenticated`, Laravel lo enlazará y ejecutará automáticamente.
+¡No tienes que hacer nada más en archivos de configuración! Gracias al **Event Discovery** automático de Laravel 11, solo debes asegurarte de tipar el parámetro de la función `handle` con nuestro evento `SsoUserAuthenticated` dentro de tu Listener, y Laravel hará el resto de forma mágica:
+
+```php
+// app/Listeners/SincronizarDatosDesdeSSO.php
+namespace App\Listeners;
+
+use Arsy\SSOClient\Events\SsoUserAuthenticated;
+
+class SincronizarDatosDesdeSSO
+{
+    // ¡Aquí ocurre la magia del Event Discovery!
+    public function handle(SsoUserAuthenticated $event): void
+    {
+        $user = $event->user;
+        $idpUser = $event->idpUser;
+        // ...
+    }
+}
+```
 
 **👉 Si usas Laravel 10 o inferior**
 Debes registrarlo manualmente en tu archivo `app/Providers/EventServiceProvider.php`:
