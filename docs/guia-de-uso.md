@@ -17,12 +17,14 @@ Dependiendo de dónde tengas alojado este paquete, existen 3 formas de instalarl
 
 - **Opción A: Packagist**
   Ejecuta directamente:
+
   ```bash
   composer require arsy/sso-client
   ```
 
-- **Opción B: GitHub (Para repositorios privados)**
-  Agrega el repositorio a tu `composer.json` para que Composer lo encuentre allí:
+- **Opción B: GitHub**
+  Agrega el repositorio a tu `composer.json`:
+
   ```json
   "repositories": [
       {
@@ -31,7 +33,9 @@ Dependiendo de dónde tengas alojado este paquete, existen 3 formas de instalarl
       }
   ]
   ```
+
   Luego instala indicando la versión que quieras usar (ej. `^1.0.0` para la versión 1 y sus parches):
+
   ```bash
   composer require arsy/sso-client:"^1.0.0"
   ```
@@ -67,12 +71,15 @@ SSO_REDIRECT_AFTER_LOGIN=/dashboard
 El paquete cuenta con un archivo de configuración y una pequeña migración que inyecta las columnas vitales (`sso_id` y `sso_last_login_at`) a tu tabla de usuarios.
 
 Publica el archivo de configuración:
+
 ```bash
 php artisan vendor:publish --tag=arsy-sso-config
 ```
-*(Opcional: puedes abrir `config/arsy-sso.php` para revisar los ajustes avanzados, como apagar la revocación automática de sesiones).*
+
+_(Opcional: puedes abrir `config/arsy-sso.php` para revisar los ajustes avanzados, como apagar la revocación automática de sesiones)._
 
 Ejecuta las migraciones:
+
 ```bash
 php artisan migrate
 ```
@@ -102,8 +109,8 @@ protected $fillable = [
 - **Para cerrar sesión:** Crea un formulario POST que apunte a la ruta `logout`.
   ```html
   <form method="POST" action="{{ route('logout') }}">
-      @csrf
-      <button type="submit">Cerrar Sesión</button>
+    @csrf
+    <button type="submit">Cerrar Sesión</button>
   </form>
   ```
 - **El Webhook:** Tu aplicación ya está escuchando silenciosamente en `tusitio.com/api/sso/webhook` para proteger tus sesiones y actualizar datos en tiempo real.
