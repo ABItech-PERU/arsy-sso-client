@@ -16,7 +16,6 @@ class SsoWebhookHandlerService
      */
     public function handle(array $payload)
     {
-        Log::info('[SSO] Webhook recibido: '.json_encode($payload));
         $eventType = $payload['event_type'] ?? null;
         $data = $payload['data'] ?? [];
 
