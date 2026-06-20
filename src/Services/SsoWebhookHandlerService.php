@@ -70,7 +70,7 @@ class SsoWebhookHandlerService
                     $destroyedCount = 0;
 
                     foreach ($sessions as $session) {
-                        $payload = json_decode(base64_decode($session->payload), true);
+                        $payload = unserialize(base64_decode($session->payload));
                         if (is_array($payload) && isset($payload['sso_user_session_id']) && $payload['sso_user_session_id'] === $idpSessionId) {
                             DB::table('sessions')->where('id', $session->id)->delete();
                             $destroyedCount++;
