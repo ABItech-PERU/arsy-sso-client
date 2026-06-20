@@ -16,6 +16,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | User Name Columns Mapping
+    |--------------------------------------------------------------------------
+    |
+    | Define las columnas para almacenar el nombre del usuario localmente.
+    | - 'user_name_column': Columna para el nombre (ej. 'name').
+    | - 'user_lastname_column': Columna para apellidos (Opcional).
+    | - 'user_avatar_column': Columna para la foto de perfil (Opcional).
+    | 
+    | Si usas una sola columna (estándar), deja 'user_lastname_column' en null.
+    | Si tu BD no guarda nombres o avatar, deja las variables comentadas o en null.
+    |
+    */
+
+    'user_name_column' => 'name',
+    // 'user_lastname_column' => 'last_name',
+    'user_avatar_column' => 'avatar',
+
+    /*
+    |--------------------------------------------------------------------------
     | Server & Credentials Configuration
     |--------------------------------------------------------------------------
     |
