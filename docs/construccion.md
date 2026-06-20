@@ -33,4 +33,4 @@ Implementamos un controlador de Webhooks protegido por validación de firma crip
 Para mantener el paquete 100% desacoplado de las reglas de negocio de cada satélite, creamos 5 eventos clave. En lugar de guardar el avatar de forma rígida, el paquete emite un evento y le pasa los datos crudos a la aplicación satélite, permitiéndole manejar esos datos como lo desee.
 
 ## 7. Versionamiento Seguro
-El `composer.json` se configuró con restricciones (`^10.0|^11.0|^12.0`) para asegurar la retrocompatibilidad, permitiendo que el paquete se instale sin conflictos de dependencias en cualquier ecosistema moderno de Laravel.
+El `composer.json` se configuró con restricciones (`^10.0|^11.0|^12.0|^13.0` para Laravel y `^8.1|^8.2|^8.3` para PHP) para asegurar la retrocompatibilidad, permitiendo que el paquete se instale sin conflictos de dependencias en cualquier ecosistema moderno.
