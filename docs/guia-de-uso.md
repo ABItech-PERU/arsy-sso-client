@@ -115,21 +115,57 @@ protected $fillable = [
   ```
 - **El Webhook:** Tu aplicación ya está escuchando silenciosamente en `tusitio.com/api/sso/webhook` para proteger tus sesiones y actualizar datos en tiempo real.
 
-## 6. Personalización (Eventos)
+## 6. Mapeo Dinámico (Nombres y Avatar)
 
-Si tu aplicación satélite necesita guardar datos adicionales (como el avatar, el género o apellidos separados) al momento de que el usuario inicia sesión o se actualiza mediante un webhook, simplemente crea un **Listener** en tu aplicación y suscríbete a nuestros eventos.
+Tu paquete puede mapear automáticamente el nombre, apellidos y avatar del usuario hacia tu base de datos local (App Satélite) sin escribir código extra. Simplemente publica la configuración y ajusta estas variables en `config/arsy-sso.php`:
 
-Ejemplo en tu `EventServiceProvider`:
+```php
+'user_name_column' => 'name',
+'user_lastname_column' => 'last_name', // Descomentar si usas columnas separadas
+'user_avatar_column' => 'avatar',      // Descomentar si guardas el avatar
+```
+
+Si dejas `user_lastname_column` comentado, el paquete juntará automáticamente los nombres y apellidos y los guardará en la columna definida en `user_name_column`.
+
+## 7. Personalización Avanzada (Eventos)
+
+Si tu aplicación necesita guardar datos extra, asignar roles, o ejecutar lógica compleja al iniciar sesión, puedes escuchar nuestros eventos creando un **Listener**.
+
+Para crear el Listener ejecuta:
+```bash
+php artisan make:listener SincronizarDatosDesdeSSO
+```
+
+Dentro de tu listener (`app/Listeners/SincronizarDatosDesdeSSO.php`) recibirás el evento con toda la información:
 
 ```php
 use Arsy\SSOClient\Events\SsoUserAuthenticated;
-use App\Listeners\GuardarAvatarYRoles;
+
+public function handle(SsoUserAuthenticated $event): void
+{
+    $user = $event->user;       // Modelo de usuario local (ya guardado en DB)
+    $idpUser = $event->idpUser; // Objeto crudo que viene desde la central (SSO)
+    
+    // Ejemplo: asignar roles
+    // $user->syncRoles($idpUser->user['roles']);
+}
+```
+
+### ¿Cómo registrar el Listener?
+
+**👉 Si usas Laravel 11 o superior (Recomendado)**
+¡No tienes que hacer nada más! Gracias al **Event Discovery** automático de Laravel 11, al tipar la variable `$event` con la clase `SsoUserAuthenticated`, Laravel lo enlazará y ejecutará automáticamente.
+
+**👉 Si usas Laravel 10 o inferior**
+Debes registrarlo manualmente en tu archivo `app/Providers/EventServiceProvider.php`:
+
+```php
+use Arsy\SSOClient\Events\SsoUserAuthenticated;
+use App\Listeners\SincronizarDatosDesdeSSO;
 
 protected $listen = [
     SsoUserAuthenticated::class => [
-        GuardarAvatarYRoles::class,
+        SincronizarDatosDesdeSSO::class,
     ],
 ];
 ```
-
-Dentro de ese listener tendrás acceso a `$event->user` (tu modelo local) y `$event->idpUser` (los datos puros en formato JSON que vinieron desde la Central).
