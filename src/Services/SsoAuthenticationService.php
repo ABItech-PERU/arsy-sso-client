@@ -33,17 +33,11 @@ class SsoAuthenticationService
         // Socialite maneja automáticamente PKCE y el intercambio de tokens.
         $idpUser = Socialite::driver('laravelpassport')->user();
 
-        // Obtener el nombre del usuario
-        $name = $idpUser->getName() ?? trim(($idpUser->user['first_name'] ?? '').' '.($idpUser->user['last_name'] ?? ''));
-        if (empty($name)) {
-            $name = $idpUser->user['username'] ?? $idpUser->getEmail();
-        }
-
         // Modelo de usuario configurado dinámicamente o por defecto a \App\Models\User
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
 
-        // Buscar primero por idp_sub (el ID inmutable del SSO)
-        $user = $userModelClass::where('idp_sub', (string) $idpUser->getId())->first();
+        // Buscar primero por sso_id (el ID inmutable del SSO)
+        $user = $userModelClass::where('sso_id', (string) $idpUser->getId())->first();
 
         // Si no se encuentra, buscar por email para vincular cuentas existentes creadas previamente
         if (! $user) {
@@ -51,20 +45,16 @@ class SsoAuthenticationService
         }
 
         $data = [
-            'idp_sub' => (string) $idpUser->getId(),
-            'name' => $name,
+            'sso_id' => (string) $idpUser->getId(),
             'email' => $idpUser->getEmail(),
-            'avatar' => $idpUser->getAvatar(),
-            'access_token' => 'session_stored',
-            'refresh_token' => 'session_stored',
-            'token_expires_at' => now()->addSeconds($idpUser->expiresIn ?? 86400),
-            'last_login_at' => now(),
+            'sso_last_login_at' => now(),
         ];
 
+        // Se usa forceFill y forceCreate para no depender de que $fillable contenga los campos en la app destino
         if ($user) {
-            $user->update($data);
+            $user->forceFill($data)->save();
         } else {
-            $user = $userModelClass::create($data);
+            $user = $userModelClass::forceCreate($data);
         }
 
         // Guardar tokens y session_id en la sesión web del navegador
@@ -77,8 +67,8 @@ class SsoAuthenticationService
 
         Auth::login($user);
 
-        // Disparar evento para extensibilidad sin sobrescribir clase
-        event(new SsoUserAuthenticated($user));
+        // Disparar evento para extensibilidad enviando el usuario local y el payload original de Socialite
+        event(new SsoUserAuthenticated($user, $idpUser));
 
         return $user;
     }
@@ -97,7 +87,7 @@ class SsoAuthenticationService
                     'Authorization' => "Bearer $accessToken",
                 ])->get(config('services.laravelpassport.host').'/api/logout');
             } catch (\Exception $e) {
-                Log::error('Error calling IDP logout: '.$e->getMessage());
+                Log::error('[SSO] Error llamando al logout del IDP: '.$e->getMessage());
             }
         }
 

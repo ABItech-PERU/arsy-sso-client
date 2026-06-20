@@ -2,45 +2,46 @@
 
 namespace Arsy\SSOClient\Http\Controllers;
 
-use Arsy\SSOClient\Services\SsoAuthenticationService;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Arsy\SSOClient\Services\SsoAuthenticationService;
 use Illuminate\Support\Facades\Log;
 
 class SsoLoginController extends Controller
 {
-    protected SsoAuthenticationService $ssoAuthService;
+    protected $ssoAuthService;
 
     public function __construct(SsoAuthenticationService $ssoAuthService)
     {
         $this->ssoAuthService = $ssoAuthService;
     }
 
-    public function getLogin()
+    public function login()
     {
         return $this->ssoAuthService->redirect();
     }
 
-    public function getCallback()
+    public function callback()
     {
         try {
             $user = $this->ssoAuthService->handleCallback();
 
-            // Usar la ruta configurada en el paquete
+            // Usar redirect()->intended() asegura que si el usuario intentaba entrar a /perfil
+            // y fue forzado a loguearse, regrese a /perfil. Si entró directo al login, irá al redirectPath.
             $redirectPath = config('arsy-sso.redirect_after_login', '/dashboard');
-            return redirect($redirectPath);
+            return redirect()->intended($redirectPath);
         } catch (\Exception $e) {
-            Log::error('SSO Callback Error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('[SSO] Callback Error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect('/')->with('error', 'Error al autenticar con el servidor central: '.$e->getMessage());
         }
     }
 
-    public function getLogout(Request $request)
+    public function logout()
     {
-        $this->ssoAuthService->logout($request->user());
+        $user = auth()->user();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($user) {
+            $this->ssoAuthService->logout($user);
+        }
 
         return redirect('/');
     }

@@ -4,6 +4,10 @@ namespace Arsy\SSOClient\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Arsy\SSOClient\Events\SsoUserLoggedOutViaWebhook;
+use Arsy\SSOClient\Events\SsoWebhookUserUpdated;
+use Arsy\SSOClient\Events\SsoWebhookUserDeleted;
+use Arsy\SSOClient\Events\SsoWebhookUserSuspended;
 
 class SsoWebhookHandlerService
 {
@@ -12,7 +16,7 @@ class SsoWebhookHandlerService
      */
     public function handle(array $payload)
     {
-        Log::info('SSO Webhook received: '.json_encode($payload));
+        Log::info('[SSO] Webhook recibido: '.json_encode($payload));
         $eventType = $payload['event_type'] ?? null;
         $data = $payload['data'] ?? [];
 
@@ -26,7 +30,12 @@ class SsoWebhookHandlerService
             case 'user.updated':
                 $this->handleUserUpdated($data);
                 break;
-                // Otros eventos como user.deleted o user.suspended pueden ser manejados aquí
+            case 'user.deleted':
+                $this->handleUserDeleted($data);
+                break;
+            case 'user.suspended':
+                $this->handleUserSuspended($data);
+                break;
         }
 
         return true;
@@ -42,27 +51,40 @@ class SsoWebhookHandlerService
         }
 
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
-        $user = $userModelClass::where('idp_sub', $userId)->first();
+        $user = $userModelClass::where('sso_id', $userId)->first();
 
         if ($user) {
-            if ($idpSessionId) {
-                // Buscamos y destruimos solo la sesión asociada al session ID del IDP
-                $sessions = DB::table('sessions')->where('user_id', $user->id)->get();
-                $destroyedCount = 0;
+            // Disparamos un evento genérico siempre. Así, si la app no usa BD para sesiones,
+            // puede escuchar este evento y destruir sus sesiones (ej. Redis) manualmente.
+            event(new SsoUserLoggedOutViaWebhook($user, $idpSessionId));
 
-                foreach ($sessions as $session) {
-                    $payload = json_decode(base64_decode($session->payload), true);
-                    if (is_array($payload) && isset($payload['sso_user_session_id']) && $payload['sso_user_session_id'] === $idpSessionId) {
-                        DB::table('sessions')->where('id', $session->id)->delete();
-                        $destroyedCount++;
+            if (! config('arsy-sso.auto_revoke_sessions', true)) {
+                Log::info("[SSO] Webhook de logout recibido. 'auto_revoke_sessions' está desactivado. Delegando al evento.");
+                return;
+            }
+
+            if (config('session.driver') === 'database') {
+                if ($idpSessionId) {
+                    // Buscamos y destruimos solo la sesión asociada al session ID del IDP
+                    $sessions = DB::table('sessions')->where('user_id', $user->id)->get();
+                    $destroyedCount = 0;
+
+                    foreach ($sessions as $session) {
+                        $payload = json_decode(base64_decode($session->payload), true);
+                        if (is_array($payload) && isset($payload['sso_user_session_id']) && $payload['sso_user_session_id'] === $idpSessionId) {
+                            DB::table('sessions')->where('id', $session->id)->delete();
+                            $destroyedCount++;
+                        }
                     }
-                }
 
-                Log::info("Se destruyeron {$destroyedCount} sesión(es) para el usuario ID: {$user->id} con el IDP session ID: {$idpSessionId}");
+                    Log::info("[SSO] Se destruyeron {$destroyedCount} sesión(es) para el usuario ID: {$user->id} con el IDP session ID: {$idpSessionId}");
+                } else {
+                    // Si no hay ID de sesión, cerramos todas las sesiones del usuario como medida cautelar
+                    DB::table('sessions')->where('user_id', $user->id)->delete();
+                    Log::info("[SSO] Se destruyeron TODAS las sesiones para el usuario ID: {$user->id} (no se envió IDP session ID)");
+                }
             } else {
-                // Si no hay ID de sesión, cerramos todas las sesiones del usuario como medida cautelar
-                DB::table('sessions')->where('user_id', $user->id)->delete();
-                Log::info("Se destruyeron TODAS las sesiones para el usuario ID: {$user->id} (no se envió IDP session ID)");
+                Log::warning("[SSO] Webhook de logout recibido, pero el driver de sesión no es 'database' (" . config('session.driver') . "). Se disparó el evento SsoUserLoggedOutViaWebhook para manejo manual.");
             }
         }
     }
@@ -77,14 +99,63 @@ class SsoWebhookHandlerService
         }
 
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
-        $user = $userModelClass::where('idp_sub', $data['id'])->first();
+        $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            $user->update([
-                'name' => $data['name'] ?? $user->name,
+            $user->forceFill([
                 'email' => $data['email'] ?? $user->email,
-                'avatar' => $data['avatar'] ?? $user->avatar,
-            ]);
+            ])->save();
+            
+            // Disparar evento para que la aplicación satélite capture campos extra (ej: avatar)
+            event(new SsoWebhookUserUpdated($user, $data));
+        }
+    }
+
+    /**
+     * Elimina lógicamente (Soft Delete) al usuario y destruye sus sesiones.
+     */
+    protected function handleUserDeleted(array $data)
+    {
+        if (empty($data['id'])) {
+            return;
+        }
+
+        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $user = $userModelClass::where('sso_id', $data['id'])->first();
+
+        if ($user) {
+            // Reutilizamos la función para destruir todas sus sesiones (forzamos $idpSessionId = null para borrar todo)
+            $this->handleSessionRevoked($user->sso_id, null);
+
+            // Realizamos Soft Delete si el modelo lo soporta, o Delete físico en su defecto
+            if (method_exists($user, 'delete')) {
+                $user->delete();
+                Log::info("[SSO] El usuario con ID {$user->id} fue eliminado por instrucción de la Central.");
+            }
+
+            event(new SsoWebhookUserDeleted($user));
+        }
+    }
+
+    /**
+     * Destruye las sesiones del usuario cuando su cuenta es suspendida.
+     */
+    protected function handleUserSuspended(array $data)
+    {
+        if (empty($data['id'])) {
+            return;
+        }
+
+        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $user = $userModelClass::where('sso_id', $data['id'])->first();
+
+        if ($user) {
+            // Destruimos todas sus sesiones
+            $this->handleSessionRevoked($user->sso_id, null);
+            
+            Log::info("[SSO] La cuenta del usuario ID {$user->id} fue suspendida. Se cerraron todas sus sesiones.");
+
+            event(new SsoWebhookUserSuspended($user));
         }
     }
 }
