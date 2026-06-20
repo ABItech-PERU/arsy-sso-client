@@ -127,63 +127,42 @@ Tu paquete puede mapear automáticamente el nombre, apellidos y avatar del usuar
 
 Si dejas `user_lastname_column` comentado, el paquete juntará automáticamente los nombres y apellidos y los guardará en la columna definida en `user_name_column`.
 
-## 7. Personalización Avanzada (Eventos)
+## 7. Eventos (Roles y Datos Extra)
 
-Si tu aplicación necesita guardar datos extra, asignar roles, o ejecutar lógica compleja al iniciar sesión, puedes escuchar nuestros eventos creando un **Listener**.
+Si necesitas guardar datos adicionales o asignar roles al iniciar sesión, crea un **Listener**:
 
-Para crear el Listener ejecuta:
 ```bash
 php artisan make:listener SincronizarDatosDesdeSSO
 ```
 
-Dentro de tu listener (`app/Listeners/SincronizarDatosDesdeSSO.php`) recibirás el evento con toda la información:
+En tu Listener (`app/Listeners/SincronizarDatosDesdeSSO.php`) recibirás toda la información:
 
 ```php
 use Arsy\SSOClient\Events\SsoUserAuthenticated;
 
 public function handle(SsoUserAuthenticated $event): void
 {
-    $user = $event->user;       // Modelo de usuario local (ya guardado en DB)
-    $idpUser = $event->idpUser; // Objeto crudo que viene desde la central (SSO)
+    $user = $event->user;       // Usuario local en DB
+    $idpUser = $event->idpUser; // Datos crudos del SSO
     
-    // Ejemplo: asignar roles
-    // $user->syncRoles($idpUser->user['roles']);
+    // Ejemplo: $user->syncRoles($idpUser->user['roles']);
 }
 ```
 
-### ¿Cómo registrar el Listener?
+### Registro del Listener
 
-**👉 Si usas Laravel 11 o superior (Recomendado)**
-¡No tienes que hacer nada más en archivos de configuración! Gracias al **Event Discovery** automático de Laravel 11, solo debes asegurarte de tipar el parámetro de la función `handle` con nuestro evento `SsoUserAuthenticated` dentro de tu Listener, y Laravel hará el resto de forma mágica:
+Dependiendo de tu versión de Laravel:
 
-```php
-// app/Listeners/SincronizarDatosDesdeSSO.php
-namespace App\Listeners;
+- **Laravel 11+ (Recomendado)**  
+  No requiere configuración extra. El **Event Discovery** lo detecta automáticamente por el parámetro `SsoUserAuthenticated`.
 
-use Arsy\SSOClient\Events\SsoUserAuthenticated;
+- **Laravel 10 o inferior**  
+  Regístralo manualmente en `app/Providers/EventServiceProvider.php`:
 
-class SincronizarDatosDesdeSSO
-{
-    // ¡Aquí ocurre la magia del Event Discovery!
-    public function handle(SsoUserAuthenticated $event): void
-    {
-        $user = $event->user;
-        $idpUser = $event->idpUser;
-        // ...
-    }
-}
-```
-
-**👉 Si usas Laravel 10 o inferior**
-Debes registrarlo manualmente en tu archivo `app/Providers/EventServiceProvider.php`:
-
-```php
-use Arsy\SSOClient\Events\SsoUserAuthenticated;
-use App\Listeners\SincronizarDatosDesdeSSO;
-
-protected $listen = [
-    SsoUserAuthenticated::class => [
-        SincronizarDatosDesdeSSO::class,
-    ],
-];
-```
+  ```php
+  protected $listen = [
+      \Arsy\SSOClient\Events\SsoUserAuthenticated::class => [
+          \App\Listeners\SincronizarDatosDesdeSSO::class,
+      ],
+  ];
+  ```
