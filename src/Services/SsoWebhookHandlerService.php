@@ -69,8 +69,8 @@ class SsoWebhookHandlerService
                     $destroyedCount = 0;
 
                     foreach ($sessions as $session) {
-                        $payload = unserialize(base64_decode($session->payload));
-                        if (is_array($payload) && isset($payload['sso_user_session_id']) && $payload['sso_user_session_id'] === $idpSessionId) {
+                            $payload = $this->decodeSessionPayload($session->payload);
+                            if (is_array($payload) && isset($payload['sso_user_session_id']) && $payload['sso_user_session_id'] === $idpSessionId) {
                             DB::table('sessions')->where('id', $session->id)->delete();
                             $destroyedCount++;
                         }
@@ -156,5 +156,27 @@ class SsoWebhookHandlerService
 
             event(new SsoWebhookUserSuspended($user));
         }
+    }
+
+    /**
+     * Decodifica el payload de la sesión, soportando tanto JSON como PHP serializado.
+     *
+     * Laravel 13+ almacena las sesiones como base64(JSON), mientras que versiones anteriores usan base64(PHP serializado).
+     */
+    protected function decodeSessionPayload(string $encodedPayload): ?array
+    {
+        $decoded = base64_decode($encodedPayload);
+        // Intentar primero como JSON
+        $payload = json_decode($decoded, true);
+        if (is_array($payload)) {
+            return $payload;
+        }
+        // Fallback: PHP serializado
+        $payload = @unserialize($decoded);
+        if (is_array($payload)) {
+            return $payload;
+        }
+        Log::warning("[SSO] No se pudo decodificar el payload de la sesión. Formato no reconocido.");
+        return null;
     }
 }
