@@ -46,7 +46,8 @@ return [
     'oauth_url' => env('ARSY_OAUTH_URL'),
     'client_id' => env('ARSY_CLIENT_ID'),
     'client_secret' => env('ARSY_CLIENT_SECRET'),
-    'webhook_secret' => env('ARSY_OAUTH_WEBHOOK_SECRET'),
+    'webhook_secret' => env('ARSY_SSO_WEBHOOK_SECRET'),
+    'billing_webhook_secret' => env('ARSY_BILLING_WEBHOOK_SECRET'),
 
     /*
     |--------------------------------------------------------------------------
