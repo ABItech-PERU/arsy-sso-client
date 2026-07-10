@@ -4,6 +4,7 @@ namespace Arsy\SSOClient\Services;
 
 use Arsy\SSOClient\Events\SsoUserAuthenticated;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -28,21 +29,52 @@ class SsoAuthenticationService
     }
 
     /**
+     * Intent de autenticación silenciosa. Si el usuario ya tiene sesión en el IDP,
+     * se autentica automáticamente sin mostrar ninguna pantalla de login.
+     * Si no tiene sesión, redirige de vuelta sin error visible.
+     */
+    public function silentLogin(): ?RedirectResponse
+    {
+        session(['sso_silent' => true]);
+
+        $redirectResponse = Socialite::driver('laravelpassport')
+            ->with(['prompt' => 'none'])
+            ->redirect();
+
+        return $redirectResponse;
+    }
+
+    /**
      * Procesa la respuesta (callback) del servidor SSO.
      */
     public function handleCallback()
     {
-        $idpUser = Socialite::driver('laravelpassport')->user();
+        $isSilent = session('sso_silent', false);
+        session()->forget('sso_silent');
 
-        $user = $this->findOrCreateUser($idpUser);
+        try {
+            $idpUser = Socialite::driver('laravelpassport')->user();
 
-        $this->storeSessionData($idpUser);
+            $user = $this->findOrCreateUser($idpUser);
 
-        Auth::login($user);
+            if (! $isSilent) {
+                $this->storeSessionData($idpUser);
+            }
 
-        event(new SsoUserAuthenticated($user, $idpUser));
+            Auth::login($user);
 
-        return $user;
+            event(new SsoUserAuthenticated($user, $idpUser));
+
+            return $user;
+        } catch (\Exception $e) {
+            if ($isSilent) {
+                return null;
+            }
+
+            Log::error('[SSO] Callback Error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            throw $e;
+        }
     }
 
     /**
