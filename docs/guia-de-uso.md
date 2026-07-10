@@ -127,7 +127,21 @@ Tu paquete puede mapear automáticamente el nombre, apellidos y avatar del usuar
 
 Si dejas `user_lastname_column` comentado, el paquete juntará automáticamente los nombres y apellidos y los guardará en la columna definida en `user_name_column`.
 
-## 7. Eventos (Roles y Datos Extra)
+## 7. Serialización de Sesiones (Laravel 13+)
+
+El webhook de cierre de sesión necesita leer el `payload` de la tabla `sessions` para identificar qué sesión destruir. Laravel 13+ permite cambiar cómo se serializa ese payload.
+
+> **Importante**: El paquete `arsy-sso-client` espera que el payload esté en **formato PHP serializado** (`unserialize`).
+
+Si tu app usa Laravel 13 o superior, **configura `session.php`**:
+
+```php
+'serialization' => 'php',
+```
+
+Si dejas el valor por defecto (`'json'`), el paquete fallará al decodificar el payload y no podrá revocar la sesión específica.
+
+## 8. Eventos (Roles y Datos Extra)
 
 Si necesitas guardar datos adicionales o asignar roles al iniciar sesión, crea un **Listener**:
 

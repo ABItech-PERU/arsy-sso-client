@@ -19,7 +19,7 @@ Toda la documentación detallada se encuentra en la carpeta `docs/`.
 ## Requisitos
 
 - PHP 8.1 o superior.
-- Laravel 10.0, 11.0 o 12.0.
+- Laravel 10.0, 11.0, 12.0 o 13.0
 
 ## Estructura de Eventos
 
