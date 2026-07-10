@@ -3,11 +3,13 @@
 namespace Arsy\SSOClient\Services;
 
 use Arsy\SSOClient\Events\SsoUserAuthenticated;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
+use RuntimeException;
 
 class SsoAuthenticationService
 {
@@ -30,7 +32,6 @@ class SsoAuthenticationService
      */
     public function handleCallback()
     {
-        // Socialite maneja automáticamente PKCE y el intercambio de tokens.
         $idpUser = Socialite::driver('laravelpassport')->user();
 
         $user = $this->findOrCreateUser($idpUser);
@@ -39,30 +40,116 @@ class SsoAuthenticationService
 
         Auth::login($user);
 
-        // Disparar evento para extensibilidad enviando el usuario local y el payload original de Socialite
         event(new SsoUserAuthenticated($user, $idpUser));
 
         return $user;
     }
 
     /**
-     * Busca o crea el usuario local basado en el IDP.
+     * Intercambia un access token SSO por un token local (Sanctum).
+     * Para apps moviles, SPAs, y herramientas de testing como Bruno/Postman.
+     */
+    public function exchangeToken(string $accessToken): array
+    {
+        $ssoUrl = config('arsy-sso.oauth_url');
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->accept('application/json')
+                ->timeout(10)
+                ->get(rtrim($ssoUrl, '/') . '/api/user');
+        } catch (\Exception $e) {
+            Log::error('[SSO] Token exchange error: ' . $e->getMessage());
+            throw new RuntimeException('No se pudo conectar con el servidor de autenticacion.');
+        }
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Token SSO invalido o expirado.', 401);
+        }
+
+        $payload = $response->json('data') ?? $response->json();
+        $user = $this->findOrCreateUserFromPayload($payload);
+
+        $token = $user->createToken('api')->plainTextToken;
+
+        return [
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+        ];
+    }
+
+    /**
+     * Busca o crea el usuario local basado en el IDP (Socialite).
      */
     private function findOrCreateUser($idpUser)
     {
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
 
-        // Buscar primero por sso_id (el ID inmutable del SSO)
         $user = $userModelClass::where('sso_id', (string) $idpUser->getId())->first();
 
-        // Si no se encuentra, buscar por email para vincular cuentas existentes creadas previamente
         if (! $user) {
             $user = $userModelClass::where('email', $idpUser->getEmail())->first();
         }
 
         $data = $this->mapUserData($idpUser);
 
-        // Se usa forceFill y forceCreate para no depender de que $fillable contenga los campos en la app destino
+        if ($user) {
+            $user->forceFill($data)->save();
+        } else {
+            $user = $userModelClass::forceCreate($data);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Busca o crea el usuario local desde la respuesta JSON de /api/user.
+     */
+    private function findOrCreateUserFromPayload(array $payload)
+    {
+        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $nameColumn = config('arsy-sso.user_name_column', 'name');
+        $lastNameColumn = config('arsy-sso.user_lastname_column');
+        $avatarColumn = config('arsy-sso.user_avatar_column');
+
+        $ssoId = $payload['id'] ?? $payload['sso_id'] ?? null;
+        $email = $payload['email'] ?? null;
+
+        if (! $email) {
+            throw new RuntimeException('El servidor SSO no devolvio un email de usuario.');
+        }
+
+        $user = null;
+        if ($ssoId) {
+            $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
+        }
+        if (! $user) {
+            $user = $userModelClass::where('email', $email)->first();
+        }
+
+        $data = [
+            'sso_id' => $ssoId ? (string) $ssoId : ($user->sso_id ?? null),
+            'email' => $email,
+            'sso_last_login_at' => now(),
+        ];
+
+        if ($nameColumn && $lastNameColumn) {
+            $data[$nameColumn] = trim($payload['first_name'] ?? $payload['name'] ?? 'Usuario');
+            $data[$lastNameColumn] = trim($payload['last_name'] ?? '');
+        } elseif ($nameColumn) {
+            $firstName = $payload['first_name'] ?? $payload['name'] ?? 'Usuario';
+            $lastName = $payload['last_name'] ?? '';
+            $data[$nameColumn] = trim($firstName . ' ' . $lastName);
+        }
+
+        if ($avatarColumn && ($payload['avatar'] ?? null)) {
+            $data[$avatarColumn] = $payload['avatar'];
+        }
+
         if ($user) {
             $user->forceFill($data)->save();
         } else {
@@ -82,11 +169,9 @@ class SsoAuthenticationService
         $lastNameColumn = config('arsy-sso.user_lastname_column');
         $avatarColumn = config('arsy-sso.user_avatar_column');
 
-        // Nombres desde el IDP
         $firstName = $rawUser['first_name'] ?? $idpUser->getName() ?? 'Usuario Default';
         $lastName = $rawUser['last_name'] ?? '';
-        
-        // Avatar desde el IDP
+
         $avatarUrl = $rawUser['avatar'] ?? $idpUser->getAvatar() ?? null;
 
         $data = [
@@ -95,7 +180,6 @@ class SsoAuthenticationService
             'sso_last_login_at' => now(),
         ];
 
-        // Mapeo dinámico de nombres según config
         if ($nameColumn && $lastNameColumn) {
             $data[$nameColumn] = trim($firstName);
             $data[$lastNameColumn] = trim($lastName);
@@ -103,7 +187,6 @@ class SsoAuthenticationService
             $data[$nameColumn] = trim($firstName . ' ' . $lastName);
         }
 
-        // Mapeo dinámico de avatar según config
         if ($avatarColumn && $avatarUrl) {
             $data[$avatarColumn] = $avatarUrl;
         }
