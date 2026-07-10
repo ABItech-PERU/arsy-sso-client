@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class SsoLoginController extends Controller
 {
-    protected $ssoAuthService;
+    protected SsoAuthenticationService $ssoAuthService;
 
     public function __construct(SsoAuthenticationService $ssoAuthService)
     {

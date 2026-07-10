@@ -14,7 +14,7 @@ class SsoWebhookHandlerService
     /**
      * Procesa el webhook recibido del servidor central.
      */
-    public function handle(array $payload)
+    public function handle(array $payload): void
     {
         $eventType = $payload['event_type'] ?? null;
         $data = $payload['data'] ?? [];
@@ -43,7 +43,7 @@ class SsoWebhookHandlerService
     /**
      * Destruye las sesiones locales para el usuario especificado.
      */
-    protected function handleSessionRevoked($userId, $idpSessionId = null)
+    protected function handleSessionRevoked($userId, $idpSessionId = null): void
     {
         if (! $userId) {
             return;
@@ -91,7 +91,7 @@ class SsoWebhookHandlerService
     /**
      * Actualiza la base de datos local cuando el usuario cambia sus datos en la cuenta central.
      */
-    protected function handleUserUpdated(array $data)
+    protected function handleUserUpdated(array $data): void
     {
         if (empty($data['id'])) {
             return;
@@ -113,7 +113,7 @@ class SsoWebhookHandlerService
     /**
      * Elimina lógicamente (Soft Delete) al usuario y destruye sus sesiones.
      */
-    protected function handleUserDeleted(array $data)
+    protected function handleUserDeleted(array $data): void
     {
         if (empty($data['id'])) {
             return;
@@ -139,7 +139,7 @@ class SsoWebhookHandlerService
     /**
      * Destruye las sesiones del usuario cuando su cuenta es suspendida.
      */
-    protected function handleUserSuspended(array $data)
+    protected function handleUserSuspended(array $data): void
     {
         if (empty($data['id'])) {
             return;

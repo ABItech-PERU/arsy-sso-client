@@ -21,7 +21,7 @@ class SsoWebhookController extends Controller
      */
     public function __invoke(Request $request)
     {
-        Log::info('[SSO] Webhook recibido: '.json_encode($request->all()));
+        Log::info('[SSO] Webhook recibido', ['event_type' => $request->input('event_type')]);
         
         $signature = $request->header('X-Arsy-Signature');
         $secret = config('arsy-sso.webhook_secret');

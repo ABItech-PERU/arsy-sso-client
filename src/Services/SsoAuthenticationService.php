@@ -17,11 +17,11 @@ class SsoAuthenticationService
     /**
      * Redirige a la página de autorización del SSO.
      */
-    public function redirect()
+    public function redirect(): RedirectResponse
     {
         $redirectResponse = Socialite::driver('laravelpassport')->redirect();
 
-        if (request()->hasHeader('X-Inertia')) {
+        if (class_exists('Inertia\Inertia') && request()->hasHeader('X-Inertia')) {
             return Inertia::location($redirectResponse->getTargetUrl());
         }
 
@@ -47,7 +47,7 @@ class SsoAuthenticationService
     /**
      * Procesa la respuesta (callback) del servidor SSO.
      */
-    public function handleCallback()
+    public function handleCallback(): mixed
     {
         $isSilent = session('sso_silent', false);
         session()->forget('sso_silent');
@@ -82,11 +82,7 @@ class SsoAuthenticationService
      */
     public function hasIdpSession(): bool
     {
-        if (isset($_COOKIE['arsy_logged_in']) && $_COOKIE['arsy_logged_in'] === '1') {
-            return true;
-        }
-
-        return false;
+        return request()->cookie('arsy_logged_in') === '1';
     }
 
     /**
@@ -151,7 +147,7 @@ class SsoAuthenticationService
     /**
      * Busca o crea el usuario local basado en el IDP (Socialite).
      */
-    private function findOrCreateUser($idpUser)
+    private function findOrCreateUser($idpUser): \Illuminate\Contracts\Auth\Authenticatable
     {
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
 
@@ -175,7 +171,7 @@ class SsoAuthenticationService
     /**
      * Busca o crea el usuario local desde la respuesta JSON de /api/user.
      */
-    private function findOrCreateUserFromPayload(array $payload)
+    private function findOrCreateUserFromPayload(array $payload): \Illuminate\Contracts\Auth\Authenticatable
     {
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
         $nameColumn = config('arsy-sso.user_name_column', 'name');
@@ -276,7 +272,7 @@ class SsoAuthenticationService
     /**
      * Cierra sesión localmente y en el servidor central.
      */
-    public function logout($user)
+    public function logout($user): void
     {
         $accessToken = session('sso_access_token');
 
@@ -285,7 +281,7 @@ class SsoAuthenticationService
                 Http::withHeaders([
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer $accessToken",
-                ])->get(config('services.laravelpassport.host').'/api/logout');
+                ])->post(config('services.laravelpassport.host').'/api/logout');
             } catch (\Exception $e) {
                 Log::error('[SSO] Error llamando al logout del IDP: '.$e->getMessage());
             }
