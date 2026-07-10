@@ -70,6 +70,8 @@ class SsoAuthenticationService
         $payload = $response->json('data') ?? $response->json();
         $user = $this->findOrCreateUserFromPayload($payload);
 
+        $this->persistTokens($user, $payload);
+
         $token = $user->createToken('api')->plainTextToken;
 
         return [
@@ -80,6 +82,26 @@ class SsoAuthenticationService
                 'email' => $user->email,
             ],
         ];
+    }
+
+    /**
+     * Persiste los tokens SSO en el usuario local.
+     */
+    private function persistTokens($user, array $payload): void
+    {
+        $data = ['sso_last_login_at' => now()];
+
+        if (isset($payload['access_token'])) {
+            $data['access_token'] = $payload['access_token'];
+        }
+        if (isset($payload['refresh_token'])) {
+            $data['refresh_token'] = $payload['refresh_token'];
+        }
+        if (isset($payload['expires_in'])) {
+            $data['token_expires_at'] = now()->addSeconds((int) $payload['expires_in']);
+        }
+
+        $user->forceFill($data)->save();
     }
 
     /**
