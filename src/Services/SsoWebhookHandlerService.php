@@ -36,8 +36,6 @@ class SsoWebhookHandlerService
                 $this->handleUserSuspended($data);
                 break;
         }
-
-        return true;
     }
 
     /**
