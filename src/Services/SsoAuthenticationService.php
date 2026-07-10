@@ -88,6 +88,9 @@ class SsoAuthenticationService
 
         return false;
     }
+
+    /**
+     * Intercambia un access token SSO por un token local (Sanctum).
      * Para apps moviles, SPAs, y herramientas de testing como Bruno/Postman.
      */
     public function exchangeToken(string $accessToken): array
