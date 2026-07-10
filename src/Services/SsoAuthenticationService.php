@@ -18,7 +18,7 @@ class SsoAuthenticationService
     /**
      * Redirige a la página de autorización del SSO.
      */
-    public function redirect(): RedirectResponse
+    public function redirect(): mixed
     {
         $redirectResponse = Socialite::driver('laravelpassport')->redirect();
 
