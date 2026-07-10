@@ -3,6 +3,7 @@
 namespace Arsy\SSOClient\Services;
 
 use Arsy\SSOClient\Events\SsoUserAuthenticated;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -147,7 +148,7 @@ class SsoAuthenticationService
     /**
      * Busca o crea el usuario local basado en el IDP (Socialite).
      */
-    private function findOrCreateUser($idpUser): \Illuminate\Contracts\Auth\Authenticatable
+    private function findOrCreateUser($idpUser): Authenticatable
     {
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
 
@@ -171,7 +172,7 @@ class SsoAuthenticationService
     /**
      * Busca o crea el usuario local desde la respuesta JSON de /api/user.
      */
-    private function findOrCreateUserFromPayload(array $payload): \Illuminate\Contracts\Auth\Authenticatable
+    private function findOrCreateUserFromPayload(array $payload): Authenticatable
     {
         $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
         $nameColumn = config('arsy-sso.user_name_column', 'name');
