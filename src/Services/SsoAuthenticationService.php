@@ -76,7 +76,18 @@ class SsoAuthenticationService
     }
 
     /**
-     * Intercambia un access token SSO por un token local (Sanctum).
+     * Verifica si el usuario tiene sesion activa en el IDP.
+     * En produccion con .arsy.test, lee la cookie compartida.
+     * En desarrollo, intenta un HTTP HEAD al IDP.
+     */
+    public function hasIdpSession(): bool
+    {
+        if (isset($_COOKIE['arsy_logged_in']) && $_COOKIE['arsy_logged_in'] === '1') {
+            return true;
+        }
+
+        return false;
+    }
      * Para apps moviles, SPAs, y herramientas de testing como Bruno/Postman.
      */
     public function exchangeToken(string $accessToken): array

@@ -76,4 +76,24 @@ return [
 
     'auto_revoke_sessions' => true,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Silent Authentication (Auto-Login)
+    |--------------------------------------------------------------------------
+    |
+    | Cuando un usuario ya tiene sesión en el servidor central (Account Arsy),
+    | el satélite puede autenticarlo automáticamente sin mostrar pantalla de login.
+    |
+    | - 'enabled': Activa/desactiva el auto-login silencioso.
+    | - 'method': Método de autenticación:
+    |     'cookie' — Lee la cookie compartida arsy_logged_in (.arsy.test) y valida
+    |                contra el IDP via HTTP. Más rápido, sin redirects.
+    |     'oauth'  — Usa OAuth2 prompt=none. Funciona cross-domain.
+    |
+    */
+    'silent_auth' => [
+        'enabled' => env('SSO_SILENT_AUTH_ENABLED', false),
+        'method' => env('SSO_SILENT_AUTH_METHOD', 'cookie'),
+    ],
+
 ];
