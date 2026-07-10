@@ -57,9 +57,7 @@ class SsoAuthenticationService
 
             $user = $this->findOrCreateUser($idpUser);
 
-            if (! $isSilent) {
-                $this->storeSessionData($idpUser);
-            }
+            $this->storeSessionData($idpUser);
 
             Auth::login($user);
 
