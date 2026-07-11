@@ -38,6 +38,11 @@ class SsoAutoLogin
             if ($request->hasCookie($cookieName)) {
                 if (!$request->session()->has('sso_silent_attempted')) {
                     $request->session()->put('sso_silent_attempted', true);
+                    
+                    if ($request->header('X-Inertia') && class_exists('\Inertia\Inertia')) {
+                        return \Inertia\Inertia::location(url('/auth/silent'));
+                    }
+                    
                     return redirect()->to('/auth/silent');
                 }
             } else {
