@@ -12,7 +12,7 @@ use Arsy\SSOClient\Events\SsoWebhookUserSuspended;
 class SsoWebhookHandlerService
 {
     /**
-     * Procesa el webhook recibido del servidor central.
+     * Procesa el webhook recibido del proveedor de identidad (IDP).
      */
     public function handle(array $payload): void
     {
@@ -39,7 +39,7 @@ class SsoWebhookHandlerService
     }
 
     /**
-     * Destruye las sesiones locales para el usuario especificado.
+     * Destruye las sesiones locales del usuario especificado.
      */
     protected function handleSessionRevoked($userId, $idpSessionId = null): void
     {
@@ -51,8 +51,7 @@ class SsoWebhookHandlerService
         $user = $userModelClass::where('sso_id', $userId)->first();
 
         if ($user) {
-            // Disparamos un evento genérico siempre. Así, si la app no usa BD para sesiones,
-            // puede escuchar este evento y destruir sus sesiones (ej. Redis) manualmente.
+            // Dispara evento genérico para drivers de sesión externos (ej. Redis)
             event(new SsoUserLoggedOutViaWebhook($user, $idpSessionId));
 
             if (! config('arsy-sso.auto_revoke_sessions', true)) {
@@ -62,7 +61,7 @@ class SsoWebhookHandlerService
 
             if (config('session.driver') === 'database') {
                 if ($idpSessionId) {
-                    // Buscamos y destruimos solo la sesión asociada al session ID del IDP
+                    // Destruye únicamente la sesión asociada al IDP
                     $sessions = DB::table('sessions')->where('user_id', $user->id)->get();
                     $destroyedCount = 0;
 
@@ -76,7 +75,7 @@ class SsoWebhookHandlerService
 
                     Log::info("[SSO] Se destruyeron {$destroyedCount} sesión(es) para el usuario ID: {$user->id} con el IDP session ID: {$idpSessionId}");
                 } else {
-                    // Si no hay ID de sesión, cerramos todas las sesiones del usuario como medida cautelar
+                    // Destruye todas las sesiones por seguridad (sin session ID)
                     DB::table('sessions')->where('user_id', $user->id)->delete();
                     Log::info("[SSO] Se destruyeron TODAS las sesiones para el usuario ID: {$user->id} (no se envió IDP session ID)");
                 }
@@ -87,7 +86,7 @@ class SsoWebhookHandlerService
     }
 
     /**
-     * Actualiza la base de datos local cuando el usuario cambia sus datos en la cuenta central.
+     * Actualiza los datos locales del usuario según los cambios en el IDP.
      */
     protected function handleUserUpdated(array $data): void
     {
@@ -103,13 +102,13 @@ class SsoWebhookHandlerService
                 'email' => $data['email'] ?? $user->email,
             ])->save();
             
-            // Disparar evento para que la aplicación satélite capture campos extra (ej: avatar)
+            // Dispara evento para sincronizar campos adicionales (ej. avatar)
             event(new SsoWebhookUserUpdated($user, $data));
         }
     }
 
     /**
-     * Elimina lógicamente (Soft Delete) al usuario y destruye sus sesiones.
+     * Elimina al usuario localmente y destruye sus sesiones activas.
      */
     protected function handleUserDeleted(array $data): void
     {
@@ -121,10 +120,10 @@ class SsoWebhookHandlerService
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            // Reutilizamos la función para destruir todas sus sesiones (forzamos $idpSessionId = null para borrar todo)
+            // Destruye todas las sesiones activas del usuario
             $this->handleSessionRevoked($user->sso_id, null);
 
-            // Realizamos Soft Delete si el modelo lo soporta, o Delete físico en su defecto
+            // Aplica Soft Delete si es compatible, de lo contrario Hard Delete
             if (method_exists($user, 'delete')) {
                 $user->delete();
                 Log::info("[SSO] El usuario con ID {$user->id} fue eliminado por instrucción de la Central.");
@@ -135,7 +134,7 @@ class SsoWebhookHandlerService
     }
 
     /**
-     * Destruye las sesiones del usuario cuando su cuenta es suspendida.
+     * Destruye las sesiones del usuario tras recibir una suspensión.
      */
     protected function handleUserSuspended(array $data): void
     {
@@ -147,7 +146,7 @@ class SsoWebhookHandlerService
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            // Destruimos todas sus sesiones
+            // Destruye todas las sesiones activas del usuario
             $this->handleSessionRevoked($user->sso_id, null);
             
             Log::info("[SSO] La cuenta del usuario ID {$user->id} fue suspendida. Se cerraron todas sus sesiones.");
@@ -157,19 +156,17 @@ class SsoWebhookHandlerService
     }
 
     /**
-     * Decodifica el payload de la sesión, soportando tanto JSON como PHP serializado.
-     *
-     * Laravel 13+ almacena las sesiones como base64(JSON), mientras que versiones anteriores usan base64(PHP serializado).
+     * Decodifica el payload de la sesión (soporta JSON y PHP serializado).
      */
     protected function decodeSessionPayload(string $encodedPayload): ?array
     {
         $decoded = base64_decode($encodedPayload);
-        // Intentar primero como JSON
+        // Intenta decodificar JSON (Laravel 13+)
         $payload = json_decode($decoded, true);
         if (is_array($payload)) {
             return $payload;
         }
-        // Fallback: PHP serializado
+        // Fallback a PHP serializado (versiones anteriores)
         $payload = @unserialize($decoded);
         if (is_array($payload)) {
             return $payload;
