@@ -43,11 +43,14 @@ return [
     |
     */
 
-    'oauth_url' => env('ARSY_OAUTH_URL'),
-    'client_id' => env('ARSY_CLIENT_ID'),
-    'client_secret' => env('ARSY_CLIENT_SECRET'),
-    'webhook_secret' => env('ARSY_SSO_WEBHOOK_SECRET'),
-    'billing_webhook_secret' => env('ARSY_BILLING_WEBHOOK_SECRET'),
+    'oauth_url' => env('SSO_OAUTH_URL', env('ARSY_OAUTH_URL')),
+    'client_id' => env('SSO_CLIENT_ID', env('ARSY_CLIENT_ID')),
+    'client_secret' => env('SSO_CLIENT_SECRET', env('ARSY_CLIENT_SECRET')),
+    
+    // Shared secret for HMAC and Webhooks
+    'shared_secret' => env('SSO_SHARED_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
+    'webhook_secret' => env('SSO_SHARED_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
+    'billing_webhook_secret' => env('SSO_BILLING_SECRET', env('ARSY_BILLING_WEBHOOK_SECRET')),
 
     /*
     |--------------------------------------------------------------------------
@@ -78,7 +81,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Silent Authentication (Auto-Login)
+    | Auto-Login (Silent Authentication)
     |--------------------------------------------------------------------------
     |
     | Cuando un usuario ya tiene sesión en el servidor central (Account Arsy),
@@ -86,14 +89,25 @@ return [
     |
     | - 'enabled': Activa/desactiva el auto-login silencioso.
     | - 'method': Método de autenticación:
-    |     'cookie' — Lee la cookie compartida arsy_logged_in (.arsy.test) y valida
-    |                contra el IDP via HTTP. Más rápido, sin redirects.
+    |     'cookie' — Lee la cookie compartida ssotoken y valida HMAC. Sin redirects.
     |     'oauth'  — Usa OAuth2 prompt=none. Funciona cross-domain.
+    |     'none'   — Desactivado.
     |
     */
-    'silent_auth' => [
-        'enabled' => env('SSO_SILENT_AUTH_ENABLED', false),
-        'method' => env('SSO_SILENT_AUTH_METHOD', 'cookie'),
+    'auto_login' => [
+        'method' => env('SSO_AUTO_LOGIN_METHOD', 'cookie'), // cookie | oauth | none
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cookie Config (Para método cookie)
+    |--------------------------------------------------------------------------
+    |
+    */
+    'cookie' => [
+        'name' => env('SSO_COOKIE_NAME', 'ssotoken'),
+        'domain' => env('SSO_COOKIE_DOMAIN'),
+        'ttl' => (int) env('SSO_COOKIE_TTL', 15),
     ],
 
 ];

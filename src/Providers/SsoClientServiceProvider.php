@@ -4,8 +4,10 @@ namespace Arsy\SSOClient\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Routing\Router;
 use SocialiteProviders\LaravelPassport\LaravelPassportExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
+use Arsy\SSOClient\Http\Middleware\SsoAutoLogin;
 
 class SsoClientServiceProvider extends ServiceProvider
 {
@@ -35,7 +37,7 @@ class SsoClientServiceProvider extends ServiceProvider
     /**
      * Inicializa cualquier servicio de la aplicación.
      */
-    public function boot()
+    public function boot(Router $router)
     {
         // 1. Cargar Rutas
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
@@ -49,7 +51,10 @@ class SsoClientServiceProvider extends ServiceProvider
             [LaravelPassportExtendSocialite::class, 'handle']
         );
 
-        // 4. Configurar Publicaciones (vendor:publish)
+        // 4. Registrar Middleware
+        $router->aliasMiddleware('sso.auto_login', SsoAutoLogin::class);
+
+        // 5. Configurar Publicaciones (vendor:publish)
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../../config/arsy-sso.php' => config_path('arsy-sso.php'),

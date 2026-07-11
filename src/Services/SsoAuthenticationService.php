@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 use RuntimeException;
+use Exception;
 
 class SsoAuthenticationService
 {
     /**
-     * Redirige a la página de autorización del SSO.
+     * Redirige al proveedor de identidad (IDP) para iniciar el flujo OAuth.
      */
     public function redirect(): mixed
     {
@@ -30,9 +31,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Intent de autenticación silenciosa. Si el usuario ya tiene sesión en el IDP,
-     * se autentica automáticamente sin mostrar ninguna pantalla de login.
-     * Si no tiene sesión, redirige de vuelta sin error visible.
+     * Inicia la autenticación silenciosa mediante OAuth (prompt=none).
      */
     public function silentLogin(): ?RedirectResponse
     {
@@ -46,7 +45,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Procesa la respuesta (callback) del servidor SSO.
+     * Procesa el callback de OAuth y autentica al usuario localmente.
      */
     public function handleCallback(): mixed
     {
@@ -65,7 +64,7 @@ class SsoAuthenticationService
             event(new SsoUserAuthenticated($user, $idpUser));
 
             return $user;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($isSilent) {
                 return null;
             }
@@ -77,9 +76,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Verifica si el usuario tiene sesion activa en el IDP.
-     * En produccion con .arsy.test, lee la cookie compartida.
-     * En desarrollo, intenta un HTTP HEAD al IDP.
+     * Verifica si existe una sesión activa leyendo la cookie compartida del IDP.
      */
     public function hasIdpSession(): bool
     {
@@ -87,8 +84,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Intercambia un access token SSO por un token local (Sanctum).
-     * Para apps moviles, SPAs, y herramientas de testing como Bruno/Postman.
+     * Intercambia un token de acceso del IDP por un token local (API/Sanctum).
      */
     public function exchangeToken(string $accessToken): array
     {
@@ -99,7 +95,7 @@ class SsoAuthenticationService
                 ->accept('application/json')
                 ->timeout(10)
                 ->get(rtrim($ssoUrl, '/') . '/api/user');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('[SSO] Token exchange error: ' . $e->getMessage());
             throw new RuntimeException('No se pudo conectar con el servidor de autenticacion.');
         }
@@ -126,7 +122,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Persiste los tokens SSO en el usuario local.
+     * Actualiza los tokens de acceso y refresco en el modelo de usuario.
      */
     private function persistTokens($user, array $payload): void
     {
@@ -146,7 +142,48 @@ class SsoAuthenticationService
     }
 
     /**
-     * Busca o crea el usuario local basado en el IDP (Socialite).
+     * Autentica o registra a un usuario a partir del payload de la cookie HMAC.
+     */
+    public function resolveCookieSession(array $payload): Authenticatable
+    {
+        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $ssoId = $payload['sub'] ?? null;
+        $email = $payload['email'] ?? null;
+
+        if (! $ssoId || ! $email) {
+            throw new RuntimeException('Payload de cookie inválido.');
+        }
+
+        $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
+
+        if (! $user) {
+            $user = $userModelClass::where('email', $email)->first();
+        }
+
+        $data = [
+            'sso_id' => (string) $ssoId,
+            'email' => $email,
+            'sso_last_login_at' => now(),
+        ];
+
+        $nameColumn = config('arsy-sso.user_name_column');
+        if ($nameColumn && isset($payload['name'])) {
+            $data[$nameColumn] = trim($payload['name']);
+        }
+
+        if ($user) {
+            $user->forceFill($data)->save();
+        } else {
+            $user = $userModelClass::forceCreate($data);
+        }
+
+        Auth::login($user);
+
+        return $user;
+    }
+
+    /**
+     * Busca o registra un usuario local usando los datos de Socialite.
      */
     private function findOrCreateUser($idpUser): Authenticatable
     {
@@ -170,7 +207,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Busca o crea el usuario local desde la respuesta JSON de /api/user.
+     * Busca o registra un usuario local usando el payload JSON de la API del IDP.
      */
     private function findOrCreateUserFromPayload(array $payload): Authenticatable
     {
@@ -223,7 +260,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Mapea los datos del usuario del IDP a la estructura local.
+     * Adapta los datos del usuario de Socialite al esquema de base de datos local.
      */
     private function mapUserData($idpUser): array
     {
@@ -258,7 +295,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Guarda los tokens y session_id en la sesión web del navegador.
+     * Almacena los tokens y el ID de sesión en la sesión web actual.
      */
     private function storeSessionData($idpUser): void
     {
@@ -271,7 +308,7 @@ class SsoAuthenticationService
     }
 
     /**
-     * Cierra sesión localmente y en el servidor central.
+     * Cierra la sesión del usuario localmente y notifica al IDP.
      */
     public function logout($user): void
     {
@@ -283,7 +320,7 @@ class SsoAuthenticationService
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer $accessToken",
                 ])->post(config('services.laravelpassport.host').'/api/logout');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('[SSO] Error llamando al logout del IDP: '.$e->getMessage());
             }
         }
