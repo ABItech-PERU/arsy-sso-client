@@ -64,6 +64,13 @@ ARSY_OAUTH_WEBHOOK_SECRET=tu_webhook_secret
 
 # URL a donde enviar al usuario luego del login (opcional, por defecto /dashboard)
 SSO_REDIRECT_AFTER_LOGIN=/dashboard
+
+# Método de auto-login para visitantes: 'cookie' (para dominios compartidos), 'oauth' (redirige silenciosamente), 'none' (desactivado)
+SSO_AUTO_LOGIN_METHOD=cookie
+
+# Si usas el método 'cookie', asegúrate que el dominio base sea igual en todos los proyectos
+# Por ejemplo, en tu archivo config/session.php o aquí en el .env:
+SESSION_DOMAIN=.arsy.test
 ```
 
 ## 3. Publicar Configuración y Migrar
@@ -127,19 +134,25 @@ Tu paquete puede mapear automáticamente el nombre, apellidos y avatar del usuar
 
 Si dejas `user_lastname_column` comentado, el paquete juntará automáticamente los nombres y apellidos y los guardará en la columna definida en `user_name_column`.
 
-## 7. Serialización de Sesiones (Laravel 13+)
+## 7. Auto-Login (SSO Silencioso)
 
-El webhook de cierre de sesión necesita leer el `payload` de la tabla `sessions` para identificar qué sesión destruir. Laravel 13+ permite cambiar cómo se serializa ese payload.
+El paquete incluye un middleware diseñado para loguear automáticamente a los usuarios que ya hayan iniciado sesión en la central (Account Arsy) y luego naveguen por tu aplicación satélite. 
 
-> **Importante**: El paquete `arsy-sso-client` espera que el payload esté en **formato PHP serializado** (`unserialize`).
-
-Si tu app usa Laravel 13 o superior, **configura `session.php`**:
+Para habilitarlo, registra el middleware en el grupo `web`.
+Dependiendo de tu versión de Laravel, agrégalo a tu `bootstrap/app.php` (Laravel 11+):
 
 ```php
-'serialization' => 'php',
+        $middleware->web(append: [
+            // Otros middlewares locales...
+            \Arsy\SSOClient\Http\Middleware\SsoAutoLogin::class,
+        ]);
 ```
 
-Si dejas el valor por defecto (`'json'`), el paquete fallará al decodificar el payload y no podrá revocar la sesión específica.
+**Métodos Disponibles (`SSO_AUTO_LOGIN_METHOD`)**:
+- **`cookie` (Recomendado):** Lee la cookie compartida (`ssotoken`) y resuelve el HMAC en memoria al instante. Ideal para evitar CORS y loops de redirección en SPAs como Inertia.js. Requiere que compartan el mismo dominio base (ej. `.arsy.test`).
+- **`oauth`:** Realiza una redirección silenciosa (`prompt=none`) hacia la central. Ideal si los dominios son completamente diferentes.
+
+> **Nota sobre Laravel 13 y las sesiones**: Las últimas versiones de Laravel cambiaron el formato de las sesiones en base de datos a `JSON`. Anteriormente era PHP Serializado. El paquete **`arsy-sso-client` decodifica automáticamente ambos formatos**, por lo que ya no tienes que preocuparte por configurar `serialization` a mano.
 
 ## 8. Eventos (Roles y Datos Extra)
 
