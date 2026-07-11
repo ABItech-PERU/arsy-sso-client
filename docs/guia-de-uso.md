@@ -1,30 +1,27 @@
-# Guía de Uso e Instalación
+# Guía de Uso e Instalación (SSO Client)
 
-Bienvenido a la guía de implementación del paquete `arsy-sso-client`. Esta guía te enseñará, paso a paso, cómo conectar una nueva aplicación "Satélite" al servidor central (Account Arsy).
+Bienvenido a la guía de integración del paquete `arsy-sso-client`. Esta guía documenta cómo conectar tu aplicación "Satélite" al servidor central de identidades (Account Arsy).
 
-## 0. Registro en Account Arsy (La Central)
+## 0. Registro en Account Arsy
 
-Antes de instalar el paquete, debes registrar tu nueva aplicación satélite en el panel de administrador de **Account Arsy**. Al crear la aplicación, se te pedirán dos URLs clave que este paquete genera automáticamente:
+Registra tu satélite en el panel de **Account Arsy**. Te pedirá tres URLs:
+- **Redirección OAuth:** `https://tusitio.com/auth/callback`
+- **Webhook SSO:** `https://tusitio.com/api/sso/webhook`
+- **Webhook Billing (Si aplica):** `https://tusitio.com/api/billing/webhook`
 
-- **URL de Redirección:** `https://tusitio.com/auth/callback`
-- **URL del Webhook:** `https://tusitio.com/api/sso/webhook`
+Guarda el **Client ID**, **Client Secret** y el **Webhook Secret** generados.
 
-Al guardar, Account Arsy te generará el **Client ID**, **Client Secret** y el **Webhook Secret**. ¡Guárdalos para el paso 2!
+## 1. Instalación
 
-## 1. Instalación del Paquete
+Dependiendo de dónde albergues el paquete, elige una opción:
 
-Dependiendo de dónde tengas alojado este paquete, existen 3 formas de instalarlo en tu proyecto satélite:
-
-- **Opción A: Packagist**
-  Ejecuta directamente:
-
+- **Opción A: Packagist (Público)**
   ```bash
-  composer require arsy/sso-client
+  composer require arsy/sso-client:"^2.0.0"
   ```
 
-- **Opción B: GitHub**
-  Agrega el repositorio a tu `composer.json`:
-
+- **Opción B: GitHub (Privado/VCS)**
+  Añade esto a tu `composer.json` y luego instala:
   ```json
   "repositories": [
       {
@@ -33,163 +30,102 @@ Dependiendo de dónde tengas alojado este paquete, existen 3 formas de instalarl
       }
   ]
   ```
-
-  Luego instala indicando la versión que quieras usar (ej. `^1.0.0` para la versión 1 y sus parches):
-
   ```bash
-  composer require arsy/sso-client:"^1.0.0"
+  composer require arsy/sso-client:"^2.0.0"
   ```
 
 - **Opción C: Local (Desarrollo)**
-  Vincula la ruta local de tu paquete y ejecuta:
+  Añade la ruta local de tu paquete al `composer.json` y luego instala:
+  ```json
+  "repositories": [
+      {
+          "type": "path",
+          "url": "c:/laragon/www/arsy-sso-client"
+      }
+  ]
+  ```
   ```bash
-  composer config repositories.sso-client path c:/laragon/www/arsy-sso-client
   composer require arsy/sso-client *@dev
   ```
 
 ## 2. Variables de Entorno (.env)
 
-Agrega y configura las siguientes variables en el archivo `.env` de tu proyecto:
+Agrega esto al `.env` del satélite:
 
 ```env
-# URL de la central de cuentas (IDP)
-ARSY_OAUTH_URL=https://account.arsy.com
+# Central IDP
+SSO_OAUTH_URL=https://account.arsy.com
 
 # Credenciales OAuth
-ARSY_CLIENT_ID=tu_client_id
-ARSY_CLIENT_SECRET=tu_client_secret
+SSO_CLIENT_ID=tu_client_id
+SSO_CLIENT_SECRET=tu_client_secret
 
-# Firma secreta para validar los Webhooks
-ARSY_OAUTH_WEBHOOK_SECRET=tu_webhook_secret
+# Secretos y Cookies
+SSO_WEBHOOK_SECRET=tu_webhook_secret
+SSO_COOKIE_SECRET=tu_cookie_secret
+SSO_COOKIE_DOMAIN=.arsy.test
+SSO_COOKIE_NAME=ssotoken
 
-# URL a donde enviar al usuario luego del login (opcional, por defecto /dashboard)
+# Configuración SSO
+SSO_AUTO_LOGIN_METHOD=oauth
 SSO_REDIRECT_AFTER_LOGIN=/dashboard
-
-# Método de auto-login para visitantes: 'cookie' (para dominios compartidos), 'oauth' (redirige silenciosamente), 'none' (desactivado)
-SSO_AUTO_LOGIN_METHOD=cookie
-
-# Si usas el método 'cookie', asegúrate que el dominio base sea igual en todos los proyectos
-# Por ejemplo, en tu archivo config/session.php o aquí en el .env:
-SESSION_DOMAIN=.arsy.test
 ```
 
-## 3. Publicar Configuración y Migrar
+## 3. Preparar Base de Datos
 
-El paquete cuenta con un archivo de configuración y una pequeña migración que inyecta las columnas vitales (`sso_id` y `sso_last_login_at`) a tu tabla de usuarios.
-
-Publica el archivo de configuración:
+Publica la configuración y ejecuta la migración que añade `sso_id` y tokens a tu tabla de usuarios:
 
 ```bash
 php artisan vendor:publish --tag=arsy-sso-config
-```
-
-_(Opcional: puedes abrir `config/arsy-sso.php` para revisar los ajustes avanzados, como apagar la revocación automática de sesiones)._
-
-Ejecuta las migraciones:
-
-```bash
 php artisan migrate
 ```
 
-## 4. Permitir campos masivos (Mass Assignment)
+Añade los campos al `$fillable` de tu `app/Models/User.php`:
+```php
+protected $fillable = [ 'name', 'email', 'password', 'sso_id', 'sso_last_login_at' ];
+```
 
-Asegúrate de agregar los nuevos campos al array `$fillable` en el modelo principal de tu aplicación (`app/Models/User.php`):
+## 4. Uso del SSO Básico
+
+El paquete inyecta las rutas automáticamente.
+- **Login:** `<a href="{{ route('login') }}">Iniciar Sesión</a>`
+- **Logout:** Haz un POST a `{{ route('logout') }}`. Ejecuta un Hard-Logout local y en la central.
+
+## 5. Auto-Login Silencioso e Híbrido
+
+Para loguear automáticamente a usuarios que ya están en la Central, registra el middleware en tu `bootstrap/app.php` (Laravel 11+):
 
 ```php
-protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'sso_id',             // Obligatorio para el paquete
-    'sso_last_login_at',  // Obligatorio para el paquete
-];
+$middleware->web(append: [
+    \Arsy\SSOClient\Http\Middleware\SsoAutoLogin::class,
+]);
 ```
 
-## 5. ¡Listo! ¿Cómo se usa?
+### Métodos de Auto-Login (`SSO_AUTO_LOGIN_METHOD`):
+- **`oauth` (Híbrido - Recomendado):** Utiliza la cookie compartida (`ssotoken`) como un "radar" ultrarrápido. Si detecta la cookie, redirige silenciosamente a la central (`prompt=none`) una sola vez para oficializar la sesión vía OAuth, registrando al satélite en el panel de conexiones.
+  - **Soporte Inertia.js:** Si el salto silencioso se activa desde un enlace de Inertia (Ajax), el middleware fuerza automáticamente un "Hard Reload" (`Inertia::location`) para evitar bloqueos de CORS.
+- **`cookie` (Legacy):** Lee y resuelve el HMAC directamente. Es más rápido pero no registra el satélite en las conexiones activas de la central.
+- **`none`:** Desactiva el auto-login.
 
-¡No tienes que crear ninguna ruta ni controlador! El paquete inyectó todo por ti.
+## 6. Sincronización Webhook (Single Sign-Out)
 
-- **Para iniciar sesión:** Crea un botón en tu vista que envíe al usuario a la ruta nombrada `login`.
-  ```html
-  <a href="{{ route('login') }}">Iniciar Sesión con Arsy</a>
-  ```
-- **Para cerrar sesión:** Crea un formulario POST que apunte a la ruta `logout`.
-  ```html
-  <form method="POST" action="{{ route('logout') }}">
-    @csrf
-    <button type="submit">Cerrar Sesión</button>
-  </form>
-  ```
-- **El Webhook:** Tu aplicación ya está escuchando silenciosamente en `tusitio.com/api/sso/webhook` para proteger tus sesiones y actualizar datos en tiempo real.
+El paquete levanta automáticamente un Webhook protegido en `/api/sso/webhook`.
+Cuando el usuario cierra sesión en la central, la central envía un evento `session.revoked` al satélite. El paquete intercepta el Webhook y **destruye automáticamente la sesión local en tiempo real** (Hard Logout).
+*Nota:* Tu satélite debe usar `SESSION_DRIVER=database` o `redis` para que la destrucción de sesiones funcione.
 
-## 6. Mapeo Dinámico (Nombres y Avatar)
+## 7. Eventos (Extensibilidad)
 
-Tu paquete puede mapear automáticamente el nombre, apellidos y avatar del usuario hacia tu base de datos local (App Satélite) sin escribir código extra. Simplemente publica la configuración y ajusta estas variables en `config/arsy-sso.php`:
-
-```php
-'user_name_column' => 'name',
-'user_lastname_column' => 'last_name', // Descomentar si usas columnas separadas
-'user_avatar_column' => 'avatar',      // Descomentar si guardas el avatar
-```
-
-Si dejas `user_lastname_column` comentado, el paquete juntará automáticamente los nombres y apellidos y los guardará en la columna definida en `user_name_column`.
-
-## 7. Auto-Login (SSO Silencioso)
-
-El paquete incluye un middleware diseñado para loguear automáticamente a los usuarios que ya hayan iniciado sesión en la central (Account Arsy) y luego naveguen por tu aplicación satélite. 
-
-Para habilitarlo, registra el middleware en el grupo `web`.
-Dependiendo de tu versión de Laravel, agrégalo a tu `bootstrap/app.php` (Laravel 11+):
-
-```php
-        $middleware->web(append: [
-            // Otros middlewares locales...
-            \Arsy\SSOClient\Http\Middleware\SsoAutoLogin::class,
-        ]);
-```
-
-**Métodos Disponibles (`SSO_AUTO_LOGIN_METHOD`)**:
-- **`cookie` (Recomendado):** Lee la cookie compartida (`ssotoken`) y resuelve el HMAC en memoria al instante. Ideal para evitar CORS y loops de redirección en SPAs como Inertia.js. Requiere que compartan el mismo dominio base (ej. `.arsy.test`).
-- **`oauth`:** Realiza una redirección silenciosa (`prompt=none`) hacia la central. Ideal si los dominios son completamente diferentes.
-
-> **Nota sobre Laravel 13 y las sesiones**: Las últimas versiones de Laravel cambiaron el formato de las sesiones en base de datos a `JSON`. Anteriormente era PHP Serializado. El paquete **`arsy-sso-client` decodifica automáticamente ambos formatos**, por lo que ya no tienes que preocuparte por configurar `serialization` a mano.
-
-## 8. Eventos (Roles y Datos Extra)
-
-Si necesitas guardar datos adicionales o asignar roles al iniciar sesión, crea un **Listener**:
-
-```bash
-php artisan make:listener SincronizarDatosDesdeSSO
-```
-
-En tu Listener (`app/Listeners/SincronizarDatosDesdeSSO.php`) recibirás toda la información:
+Si necesitas asignar roles o guardar datos adicionales al loguear, escucha el evento `SsoUserAuthenticated`:
 
 ```php
 use Arsy\SSOClient\Events\SsoUserAuthenticated;
 
 public function handle(SsoUserAuthenticated $event): void
 {
-    $user = $event->user;       // Usuario local en DB
-    $idpUser = $event->idpUser; // Datos crudos del SSO
+    $user = $event->user;       // Usuario en BD local
+    $idpUser = $event->idpUser; // Objeto OAuth de la central
     
-    // Ejemplo: $user->syncRoles($idpUser->user['roles']);
+    // Ej: $user->syncRoles($idpUser->user['roles']);
 }
 ```
-
-### Registro del Listener
-
-Dependiendo de tu versión de Laravel:
-
-- **Laravel 11+ (Recomendado)**  
-  No requiere configuración extra. El **Event Discovery** lo detecta automáticamente por el parámetro `SsoUserAuthenticated`.
-
-- **Laravel 10 o inferior**  
-  Regístralo manualmente en `app/Providers/EventServiceProvider.php`:
-
-  ```php
-  protected $listen = [
-      \Arsy\SSOClient\Events\SsoUserAuthenticated::class => [
-          \App\Listeners\SincronizarDatosDesdeSSO::class,
-      ],
-  ];
-  ```
+En Laravel 11+, el autodescubrimiento registrará tu Listener inmediatamente.

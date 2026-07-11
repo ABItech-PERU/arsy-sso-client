@@ -32,12 +32,14 @@ Implementamos un controlador de Webhooks protegido por validación de firma crip
 ## 6. Sistema de Eventos
 Para mantener el paquete 100% desacoplado de las reglas de negocio de cada satélite, creamos 5 eventos clave. En lugar de guardar el avatar de forma rígida, el paquete emite un evento y le pasa los datos crudos a la aplicación satélite, permitiéndole manejar esos datos como lo desee.
 
-## 7. Arquitectura de Auto-Login (SSO Silencioso)
-Para evitar fricción en la navegación de aplicaciones satélite (ej. `arsyinnova`), implementamos un sistema de logueo automático (`SsoAutoLogin`).
-- **El desafío:** Redirigir a un usuario visitante usando OAuth provocaba errores de CORS y bucles infinitos en aplicaciones Single Page Application (SPA) bajo Inertia.js.
-- **La solución:** Habilitamos dos estrategias (`method`):
-  1. `cookie` (Recomendada): La central emite una cookie firmada criptográficamente con HMAC (`ssotoken`) válida para todo el dominio `.arsy.test`. El middleware del satélite intercepta peticiones web de visitantes, valida la firma, extrae el payload (email/ID) y autentica silenciosamente en memoria, saltándose el flujo OAuth y evitando conflictos de CORS.
-  2. `oauth`: Realiza un redireccionamiento tradicional con `prompt=none` para entornos sin subdominios compartidos.
+## 7. Arquitectura de Auto-Login (SSO Silencioso e Híbrido)
+Para evitar fricción en la navegación de aplicaciones satélite, implementamos el middleware `SsoAutoLogin`.
+- **El desafío:** Redirigir a un usuario visitante usando OAuth provocaba bloqueos de CORS en peticiones Ajax (Inertia.js) y el método nativo de cookie compartida (solo HMAC) impedía registrar correctamente a los satélites en el panel de Conexiones de la Central, perdiendo la capacidad del "Hard Logout".
+- **La solución (Estrategia Híbrida):** 
+  El método recomendado `oauth` actúa en dos fases:
+  1. **Radar Rápido (Cookie):** El middleware busca la existencia de la cookie matriz (`ssotoken` en `.arsy.test`). Si no está, el visitante navega a máxima velocidad sin saltos ni penalizaciones de red.
+  2. **Intercepción y OAuth:** Si la cookie existe, realiza un redireccionamiento invisible (`prompt=none`) a la Central *una única vez* para oficializar la sesión vía OAuth2.
+  3. **Mitigación CORS en SPAs:** Si esta intercepción ocurre durante un salto de Inertia.js (Ajax), el middleware emite un evento de recarga forzada (`Inertia::location`) para romper el ciclo XHR y permitir que el navegador principal complete el salto de dominios sin bloqueos de seguridad.
 
 ## 8. Versionamiento Seguro
 El `composer.json` se configuró con restricciones (`^10.0|^11.0|^12.0|^13.0` para Laravel y `^8.1|^8.2|^8.3` para PHP) para asegurar la retrocompatibilidad, permitiendo que el paquete se instale sin conflictos de dependencias en cualquier ecosistema moderno.

@@ -5,7 +5,7 @@ Un paquete de Laravel diseñado para integrar aplicaciones satélite al sistema 
 ## Características principales
 
 - **Autenticación sin esfuerzo**: Configuración automática de las rutas de login, callback y logout.
-- **Auto-Login Silencioso (Cero redirecciones)**: Permite autenticar automáticamente a visitantes de tus aplicaciones satélite leyendo una cookie compartida con HMAC, ideal para evitar problemas de CORS en Inertia.js o SPAs.
+- **Auto-Login Híbrido (SSO Silencioso)**: Combina una cookie de "radar" ultrarrápida con un salto OAuth invisible de una sola vez. Garantiza que las aplicaciones satélite queden registradas en la central, integrando soporte nativo para Inertia.js (CORS) mediante recargas forzadas inteligentes (`Inertia::location`).
 - **Sincronización en tiempo real**: Escucha webhooks del servidor central para actualizar datos de usuarios, cerrar sesiones remotas o bloquear cuentas suspendidas/eliminadas de inmediato.
 - **Altamente desacoplado**: Diseñado para no interferir con la base de datos de tu aplicación, inyectando únicamente los campos vitales (`sso_id`, `sso_last_login_at`, y `email`).
 - **Sistema de eventos**: Permite a tu aplicación satélite escuchar eventos puros (como `SsoUserAuthenticated` o `SsoWebhookUserUpdated`) para que guardes datos personalizados (nombres, avatares, roles) con total libertad.
