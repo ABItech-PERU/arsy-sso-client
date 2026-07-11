@@ -54,6 +54,11 @@ class SsoLoginController extends Controller
             $this->ssoAuthService->logout($user);
         }
 
-        return redirect('/');
+        $cookieName = config('arsy-sso.cookie.name', 'ssotoken');
+        $domain = config('arsy-sso.cookie.domain');
+
+        return redirect('/')
+            ->withCookie(cookie()->forget($cookieName, '/', $domain))
+            ->withCookie(cookie()->forget('arsy_logged_in', '/', $domain));
     }
 }
