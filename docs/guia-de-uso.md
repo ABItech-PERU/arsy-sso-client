@@ -17,7 +17,7 @@ Dependiendo de dónde albergues el paquete, elige una opción:
 
 - **Opción A: Packagist (Público)**
   ```bash
-  composer require arsy/sso-client:"^2.0.0"
+  composer require arsy/sso-client:"^1.0.0"
   ```
 
 - **Opción B: GitHub (Privado/VCS)**
@@ -31,7 +31,7 @@ Dependiendo de dónde albergues el paquete, elige una opción:
   ]
   ```
   ```bash
-  composer require arsy/sso-client:"^2.0.0"
+  composer require arsy/sso-client:"^1.0.0"
   ```
 
 - **Opción C: Local (Desarrollo)**
