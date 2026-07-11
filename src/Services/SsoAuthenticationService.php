@@ -65,11 +65,10 @@ class SsoAuthenticationService
 
             return $user;
         } catch (Exception $e) {
+            Log::error('[SSO] Socialite Exception: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             if ($isSilent) {
                 return null;
             }
-
-            Log::error('[SSO] Callback Error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             throw $e;
         }

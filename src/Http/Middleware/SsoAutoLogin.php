@@ -32,12 +32,18 @@ class SsoAutoLogin
             return $next($request);
         }
 
-        // Método oauth y rutas protegidas, redirigimos
         if ($method === 'oauth') {
-            if (!$request->session()->has('sso_silent_attempted')) {
-                $request->session()->put('sso_silent_attempted', true);
-                return redirect()->to('/auth/silent'); // O la ruta configurada para oauth
+            $cookieName = config('arsy-sso.cookie.name', 'ssotoken');
+            
+            if ($request->hasCookie($cookieName)) {
+                if (!$request->session()->has('sso_silent_attempted')) {
+                    $request->session()->put('sso_silent_attempted', true);
+                    return redirect()->to('/auth/silent');
+                }
+            } else {
+                $request->session()->forget('sso_silent_attempted');
             }
+            
             return $next($request);
         }
 
