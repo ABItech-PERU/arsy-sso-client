@@ -47,10 +47,14 @@ return [
     'client_id' => env('SSO_CLIENT_ID', env('ARSY_CLIENT_ID')),
     'client_secret' => env('SSO_CLIENT_SECRET', env('ARSY_CLIENT_SECRET')),
     
-    // Shared secret for HMAC and Webhooks
-    'shared_secret' => env('SSO_SHARED_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
-    'webhook_secret' => env('SSO_SHARED_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
-    'billing_webhook_secret' => env('SSO_BILLING_SECRET', env('ARSY_BILLING_WEBHOOK_SECRET')),
+    // Secreto global (Firma la cookie ssotoken)
+    'shared_secret' => env('SSO_COOKIE_SECRET'),
+    
+    // Secretos por aplicación
+    'webhooks' => [
+        'sso' => env('SSO_WEBHOOK_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
+        'billing' => env('SSO_BILLING_SECRET', env('ARSY_BILLING_WEBHOOK_SECRET')),
+    ],
 
     /*
     |--------------------------------------------------------------------------

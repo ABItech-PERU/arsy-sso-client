@@ -24,7 +24,7 @@ class SsoWebhookController extends Controller
         Log::info('[SSO] Webhook recibido', ['event_type' => $request->input('event_type')]);
         
         $signature = $request->header('X-Arsy-Signature');
-        $secret = config('arsy-sso.webhook_secret');
+        $secret = config('arsy-sso.webhooks.sso');
 
         // Si no hay firma o no hay secret configurado, retornar error (por seguridad).
         if (!$secret || !$signature) {

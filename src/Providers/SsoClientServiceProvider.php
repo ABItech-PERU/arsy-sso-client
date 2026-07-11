@@ -24,7 +24,7 @@ class SsoClientServiceProvider extends ServiceProvider
         // Inyectar dinámicamente las credenciales en la configuración 'services' de Laravel
         // para que Socialite las lea automáticamente sin que el desarrollador tenga que modificar 'config/services.php'
         config([
-            'services.arsy_account.webhook_secret' => config('arsy-sso.webhook_secret'),
+            'services.arsy_account.webhook_secret' => config('arsy-sso.webhooks.sso'),
             'services.laravelpassport' => [
                 'client_id' => config('arsy-sso.client_id'),
                 'client_secret' => config('arsy-sso.client_secret'),
