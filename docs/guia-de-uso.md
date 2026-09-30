@@ -17,7 +17,7 @@ Dependiendo de dónde albergues el paquete, elige una opción:
 
 - **Opción A: Packagist (Público)**
   ```bash
-  composer require arsy/sso-client:"^1.0.0"
+  composer require arsy/sso-client:"^1.1.0"
   ```
 
 - **Opción B: GitHub (Privado/VCS)**
@@ -31,7 +31,7 @@ Dependiendo de dónde albergues el paquete, elige una opción:
   ]
   ```
   ```bash
-  composer require arsy/sso-client:"^1.0.0"
+  composer require arsy/sso-client:"^1.1.0"
   ```
 
 - **Opción C: Local (Desarrollo)**
@@ -69,6 +69,13 @@ SSO_COOKIE_NAME=ssotoken
 # Configuración SSO
 SSO_AUTO_LOGIN_METHOD=oauth
 SSO_REDIRECT_AFTER_LOGIN=/dashboard
+
+# Webhooks de pago (si el satélite cobra vía billing de la Central)
+SSO_BILLING_SECRET=tu_billing_secret
+
+# Opcionales
+SSO_SERVICE_TIMEOUT=15              # segundos, llamadas servidor-a-servidor
+SSO_TOKEN_EXCHANGE_ENABLED=false    # POST /api/auth/token (requiere Sanctum)
 ```
 
 ## 3. Preparar Base de Datos
@@ -125,7 +132,37 @@ public function handle(SsoUserAuthenticated $event): void
     $user = $event->user;       // Usuario en BD local
     $idpUser = $event->idpUser; // Objeto OAuth de la central
     
-    // Ej: $user->syncRoles($idpUser->user['roles']);
+    // La Central no envía roles: cada satélite gestiona los suyos.
+    // Ej: if ($user->roles()->doesntExist()) $user->assignRole('ESTUDIANTE');
+    // Campos disponibles en $idpUser->user: ver docs/satelites.md de Account.
 }
 ```
 En Laravel 11+, el autodescubrimiento registrará tu Listener inmediatamente.
+
+## 8. Llamadas servidor-a-servidor a la Central
+
+Para consumir APIs de Account Arsy como el propio satélite (billing, etc.)
+usa el macro `Http::arsyAccount()`. Obtiene un token OAuth2
+`client_credentials` con `SSO_CLIENT_ID`/`SSO_CLIENT_SECRET`, lo cachea
+cifrado hasta poco antes de expirar y, ante un `401`, lo renueva y reintenta
+una vez.
+
+```php
+use Illuminate\Support\Facades\Http;
+
+$response = Http::arsyAccount(['billing:checkout'])
+    ->post('/api/v1/checkout/sessions', $payload)
+    ->throw();
+```
+
+- Los scopes deben existir en la Central y el cliente debe tener el grant
+  `client_credentials`.
+- El macro devuelve un `PendingRequest` estándar: timeouts, `throw()` y
+  `Http::fake()` funcionan igual en tests.
+
+## 9. Canje de token (opcional)
+
+`POST /api/auth/token` canjea un token de la Central por un token local para
+clientes móviles o de escritorio del satélite. Está **desactivado por
+defecto**; actívalo con `SSO_TOKEN_EXCHANGE_ENABLED=true` solo si el modelo
+`User` usa `HasApiTokens` (Sanctum) y tiene columnas de token.
