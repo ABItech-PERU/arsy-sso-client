@@ -114,4 +114,18 @@ return [
         'ttl' => (int) env('SSO_COOKIE_TTL', 15),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Rutas opcionales
+    |--------------------------------------------------------------------------
+    |
+    | 'token_exchange': POST /api/auth/token canjea un token de la Central por
+    | un token local (clientes móviles/escritorio). Requiere Sanctum
+    | (HasApiTokens) y columnas de token en users. Desactivado por defecto.
+    |
+    */
+    'routes' => [
+        'token_exchange' => (bool) env('SSO_TOKEN_EXCHANGE_ENABLED', false),
+    ],
+
 ];

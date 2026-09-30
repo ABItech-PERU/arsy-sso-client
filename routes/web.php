@@ -14,5 +14,9 @@ Route::middleware(['web'])->group(function () {
 
 Route::middleware(['api'])->prefix('api')->group(function () {
     Route::post('/sso/webhook', SsoWebhookController::class)->name('sso.webhook');
-    Route::post('/auth/token', SsoTokenController::class)->name('sso.token');
+
+    // Opt-in: exige Sanctum (HasApiTokens) y columnas de token en users.
+    if (config('arsy-sso.routes.token_exchange')) {
+        Route::post('/auth/token', SsoTokenController::class)->name('sso.token');
+    }
 });
