@@ -2,12 +2,19 @@
 
 namespace Arsy\SSOClient\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Event;
+use Arsy\SSOClient\Http\Middleware\SsoAutoLogin;
+use Arsy\SSOClient\Services\AccountServiceToken;
+use Illuminate\Http\Client\Factory;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\ServiceProvider;
 use SocialiteProviders\LaravelPassport\LaravelPassportExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
-use Arsy\SSOClient\Http\Middleware\SsoAutoLogin;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class SsoClientServiceProvider extends ServiceProvider
 {
@@ -54,7 +61,10 @@ class SsoClientServiceProvider extends ServiceProvider
         // 4. Registrar Middleware
         $router->aliasMiddleware('sso.auto_login', SsoAutoLogin::class);
 
-        // 5. Configurar Publicaciones (vendor:publish)
+        // 5. Cliente HTTP servidor-a-servidor hacia la Central
+        $this->registerAccountHttpMacro();
+
+        // 6. Configurar Publicaciones (vendor:publish)
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../../config/arsy-sso.php' => config_path('arsy-sso.php'),
@@ -64,5 +74,33 @@ class SsoClientServiceProvider extends ServiceProvider
                 __DIR__.'/../../database/migrations/' => database_path('migrations'),
             ], 'arsy-sso-migrations');
         }
+    }
+
+    /**
+     * Http::arsyAccount(['billing:checkout'])->post('/api/v1/...') autentica
+     * al satélite con client_credentials; ante un 401 renueva el token y
+     * reintenta una vez (token revocado o expirado antes de tiempo).
+     */
+    private function registerAccountHttpMacro(): void
+    {
+        Http::macro('arsyAccount', function (array $scopes = []): PendingRequest {
+            /** @var Factory $this */
+            $tokens = app(AccountServiceToken::class);
+
+            return $this->baseUrl(rtrim((string) config('arsy-sso.oauth_url'), '/'))
+                ->acceptJson()
+                ->timeout((int) config('arsy-sso.service_client.timeout', 15))
+                ->withToken($tokens->get($scopes))
+                ->retry(2, 0, function (Throwable $exception, PendingRequest $request) use ($tokens, $scopes): bool {
+                    if (! $exception instanceof RequestException || $exception->response->status() !== Response::HTTP_UNAUTHORIZED) {
+                        return false;
+                    }
+
+                    $tokens->forget($scopes);
+                    $request->withToken($tokens->get($scopes));
+
+                    return true;
+                }, throw: false);
+        });
     }
 }

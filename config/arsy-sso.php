@@ -128,4 +128,17 @@ return [
         'token_exchange' => (bool) env('SSO_TOKEN_EXCHANGE_ENABLED', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cliente servidor-a-servidor (Http::arsyAccount)
+    |--------------------------------------------------------------------------
+    |
+    | Llamadas del satélite a la API de la Central con client_credentials
+    | (ej. billing). Reutiliza SSO_CLIENT_ID / SSO_CLIENT_SECRET.
+    |
+    */
+    'service_client' => [
+        'timeout' => (int) env('SSO_SERVICE_TIMEOUT', 15),
+    ],
+
 ];
