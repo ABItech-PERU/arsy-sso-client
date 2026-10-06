@@ -3,6 +3,13 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y versionado [SemVer](https://semver.org/lang/es/).
 
+## [1.1.1] - 2026-10-05
+
+### Corregido
+
+- Auto-login `oauth`: el salto silencioso conserva la página visitada
+  (`url.intended`); antes el usuario aterrizaba en `redirect_after_login`.
+
 ## [1.1.0] - 2026-09-30
 
 ### Añadido
