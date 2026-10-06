@@ -38,7 +38,8 @@ class SsoAutoLogin
             if ($request->hasCookie($cookieName)) {
                 if (!$request->session()->has('sso_silent_attempted')) {
                     $request->session()->put('sso_silent_attempted', true);
-                    
+                    $this->rememberIntendedUrl($request);
+
                     if ($request->header('X-Inertia') && class_exists('\Inertia\Inertia')) {
                         return \Inertia\Inertia::location(url('/auth/silent'));
                     }
@@ -86,5 +87,19 @@ class SsoAutoLogin
         }
 
         return $next($request);
+    }
+
+    /**
+     * Tras el salto silencioso el callback usa redirect()->intended():
+     * sin esto el usuario aterriza en redirect_after_login y pierde la página.
+     */
+    private function rememberIntendedUrl(Request $request): void
+    {
+        $isNavigation = $request->isMethod('GET') && ! $request->expectsJson();
+        $isAuthRoute = $request->is('login', 'logout', 'auth/*');
+
+        if ($isNavigation && ! $isAuthRoute && ! $request->session()->has('url.intended')) {
+            $request->session()->put('url.intended', $request->fullUrl());
+        }
     }
 }
