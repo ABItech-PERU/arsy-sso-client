@@ -55,6 +55,15 @@ class SsoAutoLogin
 
         // Método cookie
         if ($method === 'cookie') {
+            $secret = (string) config('arsy-sso.shared_secret');
+
+            // Sin secreto el HMAC sería falsificable: falla cerrado.
+            if ($secret === '') {
+                Log::warning('[SSO AutoLogin] SSO_COOKIE_SECRET vacío: auto-login por cookie desactivado.');
+
+                return $next($request);
+            }
+
             $cookieName = config('arsy-sso.cookie.name', 'ssotoken');
             $cookieValue = $request->cookie($cookieName);
 
@@ -64,7 +73,6 @@ class SsoAutoLogin
                 if (count($parts) === 2) {
                     $payloadBase64 = $parts[0];
                     $signature = $parts[1];
-                    $secret = config('arsy-sso.shared_secret');
 
                     $expectedSignature = hash_hmac('sha256', $payloadBase64, $secret);
 
