@@ -3,6 +3,14 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y versionado [SemVer](https://semver.org/lang/es/).
 
+## [1.1.2] - 2026-10-06
+
+### Seguridad
+
+- Auto-login `cookie`: falla cerrado si `SSO_COOKIE_SECRET` está vacío.
+  Antes el HMAC se calculaba con clave vacía y la cookie `ssotoken` podía
+  falsificarse para iniciar sesión como cualquier usuario.
+
 ## [1.1.1] - 2026-10-05
 
 ### Corregido
