@@ -3,6 +3,24 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y versionado [SemVer](https://semver.org/lang/es/).
 
+## [1.2.0] - 2026-10-10
+
+### Añadido
+
+- Índice de sesiones por usuario en Redis (`SsoSessionIndex`): hash
+  `sso:user_sessions:{user_id}` en la conexión de sesiones, alimentado en
+  cada petición autenticada y al cerrar sesión (`SessionIndexSubscriber`);
+  caduca con `session.lifetime`.
+- `Arsy\SSOClient\Testing\InMemoryRedis` para probar el índice y el cierre
+  de sesión único sin servidor Redis.
+
+### Cambiado
+
+- El cierre de sesión único por webhook exige `SESSION_DRIVER=redis`:
+  destruye las sesiones del índice con el handler de sesiones. Ya no
+  consulta la tabla `sessions`; con otro driver solo dispara
+  `SsoUserLoggedOutViaWebhook`.
+
 ## [1.1.2] - 2026-10-06
 
 ### Seguridad
