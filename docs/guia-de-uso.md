@@ -118,7 +118,18 @@ $middleware->web(append: [
 
 El paquete levanta automáticamente un Webhook protegido en `/api/sso/webhook`.
 Cuando el usuario cierra sesión en la central, la central envía un evento `session.revoked` al satélite. El paquete intercepta el Webhook y **destruye automáticamente la sesión local en tiempo real** (Hard Logout).
-*Nota:* Tu satélite debe usar `SESSION_DRIVER=database` o `redis` para que la destrucción de sesiones funcione.
+*Requisito:* `SESSION_DRIVER=redis`. Al iniciar sesión (y en cada petición autenticada) el paquete registra la sesión en el hash `sso:user_sessions:{user_id}` de la conexión de sesiones (`SESSION_CONNECTION`), con caducidad de `SESSION_LIFETIME`; el webhook destruye las sesiones del índice con el handler de sesiones. Con otro driver solo se dispara `SsoUserLoggedOutViaWebhook`.
+
+### Tests sin servidor Redis
+
+`Arsy\SSOClient\Testing\InMemoryRedis` reemplaza Redis en memoria para probar el índice y el cierre de sesión único:
+
+```php
+Redis::swap($redis = new InMemoryRedis);
+config(['session.driver' => 'redis']);
+
+$redis->connection(config('session.connection'))->hgetall("sso:user_sessions:{$user->id}");
+```
 
 ## 7. Eventos (Extensibilidad)
 
