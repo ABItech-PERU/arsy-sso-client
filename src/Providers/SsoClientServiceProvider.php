@@ -3,6 +3,7 @@
 namespace Arsy\SSOClient\Providers;
 
 use Arsy\SSOClient\Http\Middleware\SsoAutoLogin;
+use Arsy\SSOClient\Listeners\SessionIndexSubscriber;
 use Arsy\SSOClient\Services\AccountServiceToken;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\PendingRequest;
@@ -58,13 +59,16 @@ class SsoClientServiceProvider extends ServiceProvider
             [LaravelPassportExtendSocialite::class, 'handle']
         );
 
-        // 4. Registrar Middleware
+        // 4. Índice de sesiones por usuario para el cierre de sesión único
+        Event::subscribe(SessionIndexSubscriber::class);
+
+        // 5. Registrar Middleware
         $router->aliasMiddleware('sso.auto_login', SsoAutoLogin::class);
 
-        // 5. Cliente HTTP servidor-a-servidor hacia la Central
+        // 6. Cliente HTTP servidor-a-servidor hacia la Central
         $this->registerAccountHttpMacro();
 
-        // 6. Configurar Publicaciones (vendor:publish)
+        // 7. Configurar Publicaciones (vendor:publish)
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../../config/arsy-sso.php' => config_path('arsy-sso.php'),

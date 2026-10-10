@@ -9,8 +9,8 @@ use Illuminate\Queue\SerializesModels;
  * Evento disparado cuando el servidor central envía un Webhook informando
  * que el usuario cerró sesión en otra aplicación o su sesión fue revocada.
  * 
- * Útil para: Manejar el cierre de sesión manual si tu aplicación satélite no
- * usa base de datos para manejar las sesiones (ej. si usas Redis o File).
+ * Útil para: efectos propios del satélite o cierre manual si
+ * 'auto_revoke_sessions' está desactivado o el driver de sesión no es Redis.
  */
 class SsoUserLoggedOutViaWebhook
 {

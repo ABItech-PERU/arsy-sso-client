@@ -73,11 +73,11 @@ return [
     | Auto Revoke Sessions
     |--------------------------------------------------------------------------
     |
-    | Si está en true, el paquete intentará destruir automáticamente las
-    | sesiones locales en la base de datos (si el driver es 'database')
-    | cuando reciba un webhook de revocación desde el servidor central.
-    | Si usas Redis o prefieres hacerlo manual, ponlo en false y escucha
-    | el evento SsoUserLoggedOutViaWebhook.
+    | Si está en true, el paquete destruye las sesiones locales del usuario
+    | al recibir un webhook de revocación desde el servidor central. Exige
+    | SESSION_DRIVER=redis: las ubica con el índice por usuario
+    | (SsoSessionIndex). Para hacerlo manual, ponlo en false y escucha el
+    | evento SsoUserLoggedOutViaWebhook.
     |
     */
 
