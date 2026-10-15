@@ -15,6 +15,8 @@ y versionado [SemVer](https://semver.org/lang/es/).
   `config:cache` quedaba relativo (`/auth/callback`).
 - `POST /logout` invalida la sesión y regenera el token CSRF; la sesión
   anterior y su token dejan de servir.
+- Un fallo del callback OAuth muestra un mensaje fijo y deja la excepción
+  en el log; el usuario ya no ve su detalle interno.
 
 ## [1.2.0] - 2026-10-10
 

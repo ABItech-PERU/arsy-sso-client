@@ -40,9 +40,9 @@ class SsoLoginController extends Controller
 
             return redirect()->intended($redirectPath);
         } catch (\Exception $e) {
-            Log::error('[SSO] Callback Error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('[SSO] Falló el callback OAuth.', ['exception' => $e]);
 
-            return redirect('/')->with('error', 'Error al autenticar con el servidor central: '.$e->getMessage());
+            return redirect('/')->with('error', 'No se pudo iniciar sesión con la cuenta Arsy. Inténtalo de nuevo.');
         }
     }
 
