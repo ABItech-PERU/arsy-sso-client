@@ -1,0 +1,29 @@
+[
+  {
+    "regla": "project/domain/webhooks.md",
+    "nombre": "el cierre por webhook pasa por SsoSessionIndex",
+    "prompt": "Lee src/Services/SsoWebhookHandlerService.php (solo 5 líneas, sin leer ningún otro archivo) y responde solo con la línea PHP, sin explicación y según las reglas del proyecto: ¿qué llamada destruye las sesiones locales del usuario $user cuya sesión en account es $idpSessionId?",
+    "debe": [
+      "revoke\\("
+    ],
+    "no_debe": [
+      "Session::flush",
+      "Auth::logout",
+      "DB::table\\('sessions'\\)",
+      "->delete\\("
+    ]
+  },
+  {
+    "regla": "project/domain/sso.md",
+    "nombre": "cada firma usa su propio secreto",
+    "prompt": "Lee src/Http/Controllers/SsoWebhookController.php (solo 5 líneas, sin leer ningún otro archivo) y responde solo con la llamada config() exacta, sin explicación y según las reglas del proyecto: ¿de qué clave de configuración sale el secreto que valida la firma de POST /api/sso/webhook?",
+    "debe": [
+      "arsy-sso\\.webhooks\\.sso"
+    ],
+    "no_debe": [
+      "shared_secret",
+      "client_secret",
+      "webhooks\\.billing"
+    ]
+  }
+]

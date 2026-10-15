@@ -1,0 +1,112 @@
+# CLAUDE.md
+
+## 1. Proyecto
+
+**arsy/sso-client.** Paquete Composer que conecta un satélite Arsy con
+account, el IdP OAuth2 con Passport, vía Socialite y
+`socialiteproviders/laravelpassport`. Da login y auto-login, webhooks de
+cierre de sesión único y cliente servidor a servidor.
+
+- Lo instalan `arsy-academy-app`, `arsy-coworker-app` y
+  `arsy-innova-app` con `^1.2` desde el VCS. El contrato lo fija account
+  en `../../arsy-account-app/docs/satelites.md`.
+- Evoluciona a `arsy/platform-client`; tareas PC-01 a PC-09 en
+  `../../arsy-architecture/tareas/platform-client.md`.
+- Contrato v1 sin capas de compatibilidad hasta producción (ADR 0005),
+  aplicado en `project/architecture.md` regla 7.
+- Idioma (excepción de `core/04` regla 3). Clases, métodos, variables,
+  tablas, columnas y rutas en inglés; mensajes, comentarios, docs y
+  commits en español.
+
+## 2. Comandos
+
+```bash
+php -l src/Services/SsoAuthenticationService.php    # cada archivo tocado
+composer validate
+# desde arsy-academy-app, contra su vendor/arsy/sso-client
+docker exec arsy_academy_app php artisan test --filter=Sso
+```
+
+## 3. Puertas de calidad
+
+Sin CI, linters ni suite propia (`composer.json` sin `require-dev`, sin
+`tests/` ni `phpunit.xml`). Antes de entregar, estas tres.
+
+1. `php -l` sin errores en cada archivo tocado.
+2. `composer validate` sin avisos.
+3. La suite SSO de academy (`tests/Feature/Sso/`, callback, webhooks,
+   auto-login e índice de sesiones) en verde cuando el cambio la
+   alcanza. Corre contra el paquete del `vendor/` de academy (`^1.2`
+   desde el VCS); su contenedor solo monta el repo de academy
+   (`docker/compose/docker-compose.dev.yml:20`), así que un repositorio
+   `path` hacia `_composer/` no se ve dentro.
+
+Lo que quede sin probar se declara al entregar, con el comportamiento
+concreto (p. ej. «auto-login `cookie` sin ejecutar»); no se simula una
+prueba.
+
+## 4. Lo que sorprende
+
+1. **El Composer de Windows no trabaja bien sobre `\\wsl.localhost`.**
+   `composer.bat` falla porque `cmd.exe` no acepta rutas UNC, y
+   `php composer.phar` funciona pero puede dejar un archivo `NUL` en la
+   raíz, que se borra y nunca se commitea.
+2. **El paquete trae `/login` y `/logout` con nombre `login` y
+   `logout`.** Chocan con las de auth del satélite, que debe quitar las
+   suyas (`project/domain/sso.md` regla 5).
+3. **El cierre de sesión único depende del driver de sesión.** Sin
+   `SESSION_DRIVER=redis` el webhook solo dispara el evento y nadie
+   cierra la sesión salvo el listener del satélite.
+
+## 5. Configuración de Claude Code
+
+Dónde va cada pieza, `core/06`; cómo se escribe, `core/08`. Proyecto en
+**modo compartido**. `CLAUDE.md` y `.claude/` se versionan aquí para el
+equipo, y su versión vive en el repositorio privado `abitech-dev/_claude`,
+con el `stack` declarado en su `claude-sync.json`.
+
+- `rules/core/`, `rules/tech/{testing,documentation}.md`, `agents/`,
+  `hooks/*.py` y las skills son copia de la base global. Se editan en
+  `~/.claude` y llegan con `sync.py guardar global` y luego
+  `sync.py restaurar arsy-sso-client`.
+- Las demás de `rules/tech/` vienen de la biblioteca `stacks/`;
+  `tech/laravel-package.md` es idéntica en `abitech-payments-laravel`.
+  Se editan aquí y vuelven con `sync.py guardar arsy-sso-client`.
+- Lo propio vive en `rules/project/`, `settings.json` y
+  `rule-cases.json`.
+- Una buena práctica que convenga fijar se propone como cambio en su
+  regla; nunca se aplica en silencio.
+- `.agents/` guarda reglas de otra herramienta y Claude Code no las
+  carga; ante una diferencia mandan `.claude/rules/` y, en commits,
+  `core/03`.
+
+## 6. Despliegue
+
+- Un paquete no se despliega; se publica según
+  `tech/laravel-package.md` regla 7. El push pide confirmación
+  (`settings.json`).
+- Cada satélite fija la versión en su `composer.lock`. Subirla es un
+  cambio de ese satélite, con su suite.
+
+## 7. Deuda conocida
+
+| Tema | Estado |
+|---|---|
+| Suite propia | sin `require-dev`, `tests/` ni Testbench (`tech/laravel-package.md` regla 9); lo cubre solo academy |
+| `env()` en el provider | `env('APP_URL')` en `SsoClientServiceProvider.php:39`; con `config:cache` devuelve `null` y el `redirect` queda relativo; tarea SEC-P01 (`tareas/platform-client.md`) |
+| Alias de variables | `ARSY_*` como respaldo de `SSO_*` en `config/arsy-sso.php:46-48,55-56` (ADR 0005) |
+| Método por defecto | `auto_login.method` vale `cookie` (`config/arsy-sso.php:102`); account pide `oauth` |
+| Payloads alternativos | `json('data') ?? json()`, `id ?? sso_id` y `first_name ?? name` en `SsoAuthenticationService.php:106,218,240,243` (ADR 0005) |
+| Modelo de la app en `src/` | 7 `config('arsy-sso.user_model', '\\App\\Models\\User')` en `SsoAuthenticationService.php:148,189,213` y `SsoWebhookHandlerService.php:51,83,105,131` |
+| Inertia en línea | `\Inertia\Inertia::location()` y `class_exists('\Inertia\Inertia')` en `SsoAutoLogin.php:43-44`; string de clase en `SsoAuthenticationService.php:26` |
+| Cierre de sesión local | `logout()` termina en `Auth::logout()` (`SsoAuthenticationService.php:327`) sin `invalidate()` ni `regenerateToken()` (`core/05` regla 4); tarea SEC-P02 (`tareas/platform-client.md`) |
+| Error expuesto | el callback muestra `$e->getMessage()` al usuario (`SsoLoginController.php:45`; `core/05` regla 6); tarea SEC-P03 (`tareas/platform-client.md`) |
+| Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:35-54`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
+| Rutas sin prefijo | `login` y `logout` sin nombre propio ni opción para desactivarlas (`routes/web.php:9,12`; `tech/laravel-package.md` regla 4) |
+| Dependencias opcionales | Inertia y Sanctum se usan (`SsoAuthenticationService.php:12,26`, `SsoAutoLogin.php:43-44`, `createToken()` en `:111`) sin estar en `suggest` de `composer.json` (`project/architecture.md` regla 5) |
+| Rangos sin probar | `composer.json:7-8` admite PHP `^8.1\|^8.2\|^8.3` e `illuminate/support` `^10.0\|^11.0\|^12.0\|^13.0`; solo se prueba con el Laravel 13 de academy (`tech/laravel-package.md` regla 5) |
+| Dependencias | `require` solo trae `illuminate/support`; `src/` usa además `Illuminate\Http\Client`, `Routing`, `Redis`, `Session`, `Cache` y `Events` (`tech/laravel-package.md` regla 5) |
+| Código muerto | `hasIdpSession()` (`SsoAuthenticationService.php:80`) y `services.arsy_account.webhook_secret` (`SsoClientServiceProvider.php:35`) sin consumidor aquí ni en los satélites |
+| Comentarios que repiten el código | `SsoClientServiceProvider.php:27,50-71`, `SsoAutoLogin.php:23,30,56,82,86`, `SsoWebhookHandlerService.php:91,109,135` (`core/02`) |
+| Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8) |
+| Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); `docs/guia-de-uso.md` instala `^1.1.0` (`:20,34`) y apunta a `c:/laragon/www/arsy-sso-client` (`:43`) |
