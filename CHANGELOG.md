@@ -8,6 +8,8 @@ y versionado [SemVer](https://semver.org/lang/es/).
 ### Añadido
 
 - Suite propia con Orchestra Testbench y PHPUnit (`composer test`).
+- Comando `arsy-sso:link-user {email} {sso_id}` que vincula a mano una
+  cuenta local sin `sso_id` con su usuario de account y lo deja en el log.
 
 ### Corregido
 

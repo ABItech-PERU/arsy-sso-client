@@ -2,6 +2,7 @@
 
 namespace Arsy\SSOClient\Providers;
 
+use Arsy\SSOClient\Console\LinkUserCommand;
 use Arsy\SSOClient\Http\Middleware\SsoAutoLogin;
 use Arsy\SSOClient\Listeners\SessionIndexSubscriber;
 use Arsy\SSOClient\Services\AccountServiceToken;
@@ -77,6 +78,8 @@ class SsoClientServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../../database/migrations/' => database_path('migrations'),
             ], 'arsy-sso-migrations');
+
+            $this->commands([LinkUserCommand::class]);
         }
     }
 
