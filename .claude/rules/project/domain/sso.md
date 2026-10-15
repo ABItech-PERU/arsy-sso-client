@@ -7,6 +7,7 @@ paths:
   - "config/arsy-sso.php"
   - "routes/web.php"
   - "database/migrations/**"
+  - "src/Console/**"
 ---
 
 # SSO (login, auto-login e identidad)
@@ -20,13 +21,19 @@ al usuario por `sso_id` y guarda de él lo mínimo.
 | --- | --- |
 | `redirect()` hacia account en una petición con `X-Inertia` | `Inertia::location($url)`, que fuerza la recarga completa |
 | Columna nueva en la migración del paquete (avatar, roles, perfil) | evento con los datos crudos de account y columna del satélite |
-| Buscar al usuario solo por `email` | primero `sso_id`; el `email` solo enlaza un usuario sin `sso_id` |
+| Buscar o enlazar al usuario por `email` en el login | solo `sso_id`; un correo ya usado se rechaza y se vincula con `arsy-sso:link-user` |
 | Un secreto para dos propósitos | el secreto de cada fila de la regla 6 |
 
 ## Reglas
 
 1. **Identidad.** `users.sso_id` guarda el `id` (UUID) de account y es
    la llave local. Nunca se recicla ni se reescribe con otro valor.
+   - Login, cookie y canje de token buscan solo por `sso_id`; si otra
+     cuenta local ya tiene el correo, `rejectTakenEmail()` lanza
+     `RuntimeException` y nadie entra.
+   - Una cuenta previa sin `sso_id` (la pre-aprovisionada de academy) se
+     vincula solo con `php artisan arsy-sso:link-user {email} {sso_id}`,
+     que deja un `Log::notice` con `user_id` y `sso_id`.
 2. **BD mínima.** La migración solo agrega `sso_id` y
    `sso_last_login_at`. Nombre y avatar van a las columnas que fija la
    config (`user_name_column`, `user_lastname_column`,

@@ -23,7 +23,7 @@ account, como concreción de `tech/laravel-package.md`.
 
 ## Reglas
 
-1. **Estructura.** `src/` en `Events`, `Http/Controllers`,
+1. **Estructura.** `src/` en `Console`, `Events`, `Http/Controllers`,
    `Http/Middleware`, `Listeners`, `Providers`, `Services` y `Testing`.
    Los controladores son delgados y delegan en `src/Services/`.
 2. **Provider.**
@@ -36,7 +36,7 @@ account, como concreción de `tech/laravel-package.md`.
    - `boot()` carga `routes/web.php` y la migración, que el satélite no
      necesita publicar, y registra el listener de Socialite,
      `SessionIndexSubscriber`, el alias `sso.auto_login` y la macro
-     `Http::arsyAccount`.
+     `Http::arsyAccount`. En consola registra `arsy-sso:link-user`.
 3. **Cliente servidor a servidor.** `Http::arsyAccount($scopes)` sale a
    `arsy-sso.oauth_url` con el token `client_credentials` de
    `AccountServiceToken`, cifrado en caché por `client_id` y scopes

@@ -24,6 +24,12 @@ DIRECTIVA: la suite corre en Orchestra Testbench sin app host, y
      `tests/Feature/Providers/SsoClientServiceProviderTest.php`. Testbench
      registra el provider antes de `defineEnvironment()`, así que la
      prueba cambia la config y lo registra de nuevo con `force: true`.
+   - Con base de datos, el trait `tests/Concerns/UsesUsersTable.php`
+     (tabla `users` de Laravel, migración del paquete y
+     `createLocalUser()`) y el modelo `tests/Fixtures/User.php`, que
+     `TestCase` fija como `arsy-sso.user_model`. Modelos,
+     `tests/Feature/Console/LinkUserCommandTest.php` y
+     `tests/Feature/Services/SsoAuthenticationServiceTest.php`.
    - Ruta web del paquete:
      `tests/Feature/Http/Controllers/SsoLoginControllerTest.php`, con
      `withSession()` y su cookie, `GenericUser` sin tabla,
