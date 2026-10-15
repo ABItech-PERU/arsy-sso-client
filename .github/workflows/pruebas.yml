@@ -17,8 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { php: '8.1', laravel: '10', testbench: '8', lowest: true }
-          - { php: '8.3', laravel: '11', testbench: '9' }
+          - { php: '8.1', laravel: '10', testbench: '8', lowest: true, eol: true }
+          - { php: '8.3', laravel: '11', testbench: '9', eol: true }
           - { php: '8.3', laravel: '12', testbench: '10' }
           - { php: '8.3', laravel: '13', testbench: '11' }
           - { php: '8.5', laravel: '13', testbench: '11' }
@@ -33,6 +33,11 @@ jobs:
           coverage: none
 
       - run: composer validate --strict
+
+      # Laravel 10 y 11 ya no reciben parches y Composer bloquea sus versiones.
+      - name: Admitir Laravel sin soporte de seguridad
+        if: matrix.eol
+        run: composer config policy.advisories.block false
 
       - name: Fijar Laravel ${{ matrix.laravel }}
         run: |
