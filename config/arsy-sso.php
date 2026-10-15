@@ -91,15 +91,14 @@ return [
     | Cuando un usuario ya tiene sesión en el servidor central (Account Arsy),
     | el satélite puede autenticarlo automáticamente sin mostrar pantalla de login.
     |
-    | - 'enabled': Activa/desactiva el auto-login silencioso.
     | - 'method': Método de autenticación:
+    |     'oauth'  — Por defecto. Usa OAuth2 prompt=none. Funciona cross-domain.
     |     'cookie' — Lee la cookie compartida ssotoken y valida HMAC. Sin redirects.
-    |     'oauth'  — Usa OAuth2 prompt=none. Funciona cross-domain.
     |     'none'   — Desactivado.
     |
     */
     'auto_login' => [
-        'method' => env('SSO_AUTO_LOGIN_METHOD', 'cookie'), // cookie | oauth | none
+        'method' => env('SSO_AUTO_LOGIN_METHOD', 'oauth'), // oauth | cookie | none
     ],
 
     /*

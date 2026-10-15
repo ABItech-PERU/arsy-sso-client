@@ -25,7 +25,7 @@ class SsoAutoLogin
             return $next($request);
         }
 
-        $method = config('arsy-sso.auto_login.method', 'cookie');
+        $method = config('arsy-sso.auto_login.method', 'oauth');
 
         // Método none, continuar
         if ($method === 'none') {

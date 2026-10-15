@@ -109,7 +109,7 @@ $middleware->web(append: [
 ```
 
 ### Métodos de Auto-Login (`SSO_AUTO_LOGIN_METHOD`):
-- **`oauth` (Híbrido - Recomendado):** Utiliza la cookie compartida (`ssotoken`) como un "radar" ultrarrápido. Si detecta la cookie, redirige silenciosamente a la central (`prompt=none`) una sola vez para oficializar la sesión vía OAuth, registrando al satélite en el panel de conexiones.
+- **`oauth` (Híbrido, por defecto):** Utiliza la cookie compartida (`ssotoken`) como un "radar" ultrarrápido. Si detecta la cookie, redirige silenciosamente a la central (`prompt=none`) una sola vez para oficializar la sesión vía OAuth, registrando al satélite en el panel de conexiones.
   - **Soporte Inertia.js:** Si el salto silencioso se activa desde un enlace de Inertia (Ajax), el middleware fuerza automáticamente un "Hard Reload" (`Inertia::location`) para evitar bloqueos de CORS.
 - **`cookie` (Legacy):** Lee y resuelve el HMAC directamente. Es más rápido pero no registra el satélite en las conexiones activas de la central.
 - **`none`:** Desactiva el auto-login.

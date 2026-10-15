@@ -41,7 +41,7 @@ al usuario por `sso_id` y guarda de él lo mínimo.
    `SsoUserAuthenticated`.
 3. **Auto-login híbrido** (`SsoAutoLogin`, alias `sso.auto_login`),
    según `arsy-sso.auto_login.method`.
-   - `oauth`, el que pide account. La cookie `ssotoken` es solo un
+   - `oauth`, el valor por defecto y el que pide account. La cookie `ssotoken` es solo un
      radar; si existe y la sesión no tiene `sso_silent_attempted`, hace
      un único salto a `/auth/silent` (`prompt=none`), que registra la
      sesión en account para que pueda cerrarla.

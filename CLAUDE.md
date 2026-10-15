@@ -100,7 +100,6 @@ con el `stack` declarado en su `claude-sync.json`.
 
 | Tema | Estado |
 |---|---|
-| Método por defecto | `auto_login.method` vale `cookie` (`config/arsy-sso.php:102`); account pide `oauth`; tarea DT-01 |
 | Contraseña obligatoria | la migración del paquete no hace `users.password` nullable ni la guía lo pide; con la tabla de Laravel, crear un usuario SSO falla por `NOT NULL`; tarea DT-12 |
 | Modelo de la app en `src/` | 7 `config('arsy-sso.user_model', '\\App\\Models\\User')` en `SsoAuthenticationService.php:148,189,213` y `SsoWebhookHandlerService.php:51,83,105,131`; tarea DT-04 |
 | Inertia en línea | `\Inertia\Inertia::location()` y `class_exists('\Inertia\Inertia')` en `SsoAutoLogin.php:43-44`; string de clase en `SsoAuthenticationService.php:26`; tarea DT-04 |

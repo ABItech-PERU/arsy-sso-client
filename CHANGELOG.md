@@ -7,6 +7,9 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ### Cambiado
 
+- **Incompatible.** `SSO_AUTO_LOGIN_METHOD` vale `oauth` por defecto, el
+  método que pide account; quien dependía de `cookie` sin fijarlo debe
+  ponerlo en su `.env`.
 - **Incompatible.** Solo se leen las variables `SSO_*`; los alias `ARSY_*`
   ya no sirven.
 - **Incompatible.** `POST /api/auth/token` acepta solo la forma v1 de
