@@ -23,18 +23,24 @@ cierre de sesión único y cliente servidor a servidor.
 ```bash
 php -l src/Services/SsoAuthenticationService.php    # cada archivo tocado
 composer validate
+# suite del paquete, desde WSL en la raíz del repo
+docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/app -w /app \
+  composer:2 install
+docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/app -w /app \
+  --entrypoint php composer:2 vendor/bin/phpunit
 # desde arsy-academy-app, contra su vendor/arsy/sso-client
 docker exec arsy_academy_app php artisan test --filter=Sso
 ```
 
 ## 3. Puertas de calidad
 
-Sin CI, linters ni suite propia (`composer.json` sin `require-dev`, sin
-`tests/` ni `phpunit.xml`). Antes de entregar, estas tres.
+Sin CI ni linters. Antes de entregar, estas cuatro.
 
 1. `php -l` sin errores en cada archivo tocado.
 2. `composer validate` sin avisos.
-3. La suite SSO de academy (`tests/Feature/Sso/`, callback, webhooks,
+3. La suite del paquete (`tests/`, Orchestra Testbench) en verde, con la
+   prueba del cambio según `project/testing.md`.
+4. La suite SSO de academy (`tests/Feature/Sso/`, callback, webhooks,
    auto-login e índice de sesiones) en verde cuando el cambio la
    alcanza. Corre contra el paquete del `vendor/` de academy (`^1.2`
    desde el VCS); su contenedor solo monta el repo de academy
@@ -50,7 +56,9 @@ prueba.
 1. **El Composer de Windows no trabaja bien sobre `\\wsl.localhost`.**
    `composer.bat` falla porque `cmd.exe` no acepta rutas UNC, y
    `php composer.phar` funciona pero puede dejar un archivo `NUL` en la
-   raíz, que se borra y nunca se commitea.
+   raíz, que se borra y nunca se commitea. El PHP de Windows tampoco
+   abre `vendor/autoload.php` por esa ruta; la suite corre con Docker
+   desde WSL (§2).
 2. **El paquete trae `/login` y `/logout` con nombre `login` y
    `logout`.** Chocan con las de auth del satélite, que debe quitar las
    suyas (`project/domain/sso.md` regla 5).
@@ -92,21 +100,17 @@ con el `stack` declarado en su `claude-sync.json`.
 
 | Tema | Estado |
 |---|---|
-| Suite propia | sin `require-dev`, `tests/` ni Testbench (`tech/laravel-package.md` regla 9); lo cubre solo academy |
-| `env()` en el provider | `env('APP_URL')` en `SsoClientServiceProvider.php:39`; con `config:cache` devuelve `null` y el `redirect` queda relativo; tarea SEC-P01 (`tareas/platform-client.md`) |
 | Alias de variables | `ARSY_*` como respaldo de `SSO_*` en `config/arsy-sso.php:46-48,55-56` (ADR 0005) |
 | Método por defecto | `auto_login.method` vale `cookie` (`config/arsy-sso.php:102`); account pide `oauth` |
 | Payloads alternativos | `json('data') ?? json()`, `id ?? sso_id` y `first_name ?? name` en `SsoAuthenticationService.php:106,218,240,243` (ADR 0005) |
 | Modelo de la app en `src/` | 7 `config('arsy-sso.user_model', '\\App\\Models\\User')` en `SsoAuthenticationService.php:148,189,213` y `SsoWebhookHandlerService.php:51,83,105,131` |
 | Inertia en línea | `\Inertia\Inertia::location()` y `class_exists('\Inertia\Inertia')` en `SsoAutoLogin.php:43-44`; string de clase en `SsoAuthenticationService.php:26` |
-| Cierre de sesión local | `logout()` termina en `Auth::logout()` (`SsoAuthenticationService.php:327`) sin `invalidate()` ni `regenerateToken()` (`core/05` regla 4); tarea SEC-P02 (`tareas/platform-client.md`) |
-| Error expuesto | el callback muestra `$e->getMessage()` al usuario (`SsoLoginController.php:45`; `core/05` regla 6); tarea SEC-P03 (`tareas/platform-client.md`) |
 | Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:35-54`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
 | Rutas sin prefijo | `login` y `logout` sin nombre propio ni opción para desactivarlas (`routes/web.php:9,12`; `tech/laravel-package.md` regla 4) |
 | Dependencias opcionales | Inertia y Sanctum se usan (`SsoAuthenticationService.php:12,26`, `SsoAutoLogin.php:43-44`, `createToken()` en `:111`) sin estar en `suggest` de `composer.json` (`project/architecture.md` regla 5) |
-| Rangos sin probar | `composer.json:7-8` admite PHP `^8.1\|^8.2\|^8.3` e `illuminate/support` `^10.0\|^11.0\|^12.0\|^13.0`; solo se prueba con el Laravel 13 de academy (`tech/laravel-package.md` regla 5) |
+| Rangos sin CI | `composer.json:7-8` admite PHP `^8.1\|^8.2\|^8.3` e `illuminate/support` `^10.0\|^11.0\|^12.0\|^13.0`; la suite pasa a mano con Laravel 10 en PHP 8.1, 11 y 12 en PHP 8.3 y 13 en PHP 8.3 y 8.5, sin CI que repita la matriz (`tech/laravel-package.md` regla 5) |
 | Dependencias | `require` solo trae `illuminate/support`; `src/` usa además `Illuminate\Http\Client`, `Routing`, `Redis`, `Session`, `Cache` y `Events` (`tech/laravel-package.md` regla 5) |
 | Código muerto | `hasIdpSession()` (`SsoAuthenticationService.php:80`) y `services.arsy_account.webhook_secret` (`SsoClientServiceProvider.php:35`) sin consumidor aquí ni en los satélites |
 | Comentarios que repiten el código | `SsoClientServiceProvider.php:27,50-71`, `SsoAutoLogin.php:23,30,56,82,86`, `SsoWebhookHandlerService.php:91,109,135` (`core/02`) |
-| Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8) |
+| Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8) |
 | Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); `docs/guia-de-uso.md` instala `^1.1.0` (`:20,34`) y apunta a `c:/laragon/www/arsy-sso-client` (`:43`) |
