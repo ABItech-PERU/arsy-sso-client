@@ -13,6 +13,8 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 - El `redirect` de OAuth se arma con `config('app.url')`; con
   `config:cache` quedaba relativo (`/auth/callback`).
+- `POST /logout` invalida la sesión y regenera el token CSRF; la sesión
+  anterior y su token dejan de servir.
 
 ## [1.2.0] - 2026-10-10
 

@@ -325,5 +325,8 @@ class SsoAuthenticationService
         }
 
         Auth::logout();
+
+        session()->invalidate();
+        session()->regenerateToken();
     }
 }
