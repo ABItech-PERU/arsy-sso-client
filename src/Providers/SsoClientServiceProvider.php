@@ -25,13 +25,11 @@ class SsoClientServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // Mezclar configuración del paquete con la de la aplicación
         $this->mergeConfigFrom(
             __DIR__.'/../../config/arsy-sso.php', 'arsy-sso'
         );
 
-        // Inyectar dinámicamente las credenciales en la configuración 'services' de Laravel
-        // para que Socialite las lea automáticamente sin que el desarrollador tenga que modificar 'config/services.php'
+        // Socialite lee esta config; el satélite no toca config/services.php.
         config([
             'services.laravelpassport' => [
                 'client_id' => config('arsy-sso.client_id'),
@@ -47,28 +45,21 @@ class SsoClientServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        // 1. Cargar Rutas
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
 
-        // 2. Cargar Migraciones
         $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
 
-        // 3. Registrar el Provider de Socialite
         Event::listen(
             SocialiteWasCalled::class,
             [LaravelPassportExtendSocialite::class, 'handle']
         );
 
-        // 4. Índice de sesiones por usuario para el cierre de sesión único
         Event::subscribe(SessionIndexSubscriber::class);
 
-        // 5. Registrar Middleware
         $router->aliasMiddleware('sso.auto_login', SsoAutoLogin::class);
 
-        // 6. Cliente HTTP servidor-a-servidor hacia la Central
         $this->registerAccountHttpMacro();
 
-        // 7. Configurar Publicaciones (vendor:publish)
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../../config/arsy-sso.php' => config_path('arsy-sso.php'),

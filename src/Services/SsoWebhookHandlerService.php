@@ -88,7 +88,6 @@ class SsoWebhookHandlerService
                 'email' => $data['email'] ?? $user->email,
             ])->save();
             
-            // Dispara evento para sincronizar campos adicionales (ej. avatar)
             event(new SsoWebhookUserUpdated($user, $data));
         }
     }
@@ -106,10 +105,9 @@ class SsoWebhookHandlerService
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            // Destruye todas las sesiones activas del usuario
             $this->handleSessionRevoked($user->sso_id, null);
 
-            // Aplica Soft Delete si es compatible, de lo contrario Hard Delete
+            // delete() respeta SoftDeletes si el modelo lo usa.
             if (method_exists($user, 'delete')) {
                 $user->delete();
                 Log::info("[SSO] El usuario con ID {$user->id} fue eliminado por instrucción de la Central.");
@@ -132,7 +130,6 @@ class SsoWebhookHandlerService
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            // Destruye todas las sesiones activas del usuario
             $this->handleSessionRevoked($user->sso_id, null);
             
             Log::info("[SSO] La cuenta del usuario ID {$user->id} fue suspendida. Se cerraron todas sus sesiones.");

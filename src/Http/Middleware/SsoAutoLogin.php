@@ -21,14 +21,12 @@ class SsoAutoLogin
 
     public function handle(Request $request, Closure $next)
     {
-        // Usuario autenticado localmente, continuar
         if (Auth::check()) {
             return $next($request);
         }
 
         $method = config('arsy-sso.auto_login.method', 'oauth');
 
-        // Método none, continuar
         if ($method === 'none') {
             return $next($request);
         }
@@ -54,11 +52,10 @@ class SsoAutoLogin
             return $next($request);
         }
 
-        // Método cookie
         if ($method === 'cookie') {
             $secret = (string) config('arsy-sso.shared_secret');
 
-            // Sin secreto el HMAC sería falsificable: falla cerrado.
+            // Sin secreto el HMAC sería falsificable, así que falla cerrado.
             if ($secret === '') {
                 Log::warning('[SSO AutoLogin] SSO_COOKIE_SECRET vacío: auto-login por cookie desactivado.');
 
@@ -69,7 +66,7 @@ class SsoAutoLogin
             $cookieValue = $request->cookie($cookieName);
 
             if ($cookieValue) {
-                // Formato: payload_base64.firma
+                // La cookie de account llega como payload_base64.firma.
                 $parts = explode('.', $cookieValue);
                 if (count($parts) === 2) {
                     $payloadBase64 = $parts[0];
@@ -80,13 +77,10 @@ class SsoAutoLogin
                     if (hash_equals($expectedSignature, $signature)) {
                         $payload = json_decode(base64_decode($payloadBase64), true);
 
-                        // Verificar expiración
                         if (isset($payload['exp']) && $payload['exp'] > time()) {
                             try {
                                 $this->authService->resolveCookieSession($payload);
-                                // Usuario logueado en la request actual
                             } catch (Exception $e) {
-                                // Fallo silencioso, continuar como visitante
                                 Log::warning('[SSO AutoLogin] Fallo al resolver cookie: ' . $e->getMessage());
                             }
                         }
