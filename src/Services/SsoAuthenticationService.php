@@ -103,7 +103,7 @@ class SsoAuthenticationService
             throw new RuntimeException('Token SSO invalido o expirado.', 401);
         }
 
-        $payload = $response->json('data') ?? $response->json();
+        $payload = $response->json();
         $user = $this->findOrCreateUserFromPayload($payload);
 
         $this->persistTokens($user, $payload);
@@ -209,7 +209,7 @@ class SsoAuthenticationService
         $lastNameColumn = config('arsy-sso.user_lastname_column');
         $avatarColumn = config('arsy-sso.user_avatar_column');
 
-        $ssoId = $payload['id'] ?? $payload['sso_id'] ?? null;
+        $ssoId = $payload['id'] ?? null;
         $email = $payload['email'] ?? null;
 
         if (! $email) {
@@ -228,12 +228,13 @@ class SsoAuthenticationService
             'sso_last_login_at' => now(),
         ];
 
+        $firstName = $payload['first_name'] ?? '';
+        $lastName = $payload['last_name'] ?? '';
+
         if ($nameColumn && $lastNameColumn) {
-            $data[$nameColumn] = trim($payload['first_name'] ?? $payload['name'] ?? 'Usuario');
-            $data[$lastNameColumn] = trim($payload['last_name'] ?? '');
+            $data[$nameColumn] = trim($firstName);
+            $data[$lastNameColumn] = trim($lastName);
         } elseif ($nameColumn) {
-            $firstName = $payload['first_name'] ?? $payload['name'] ?? 'Usuario';
-            $lastName = $payload['last_name'] ?? '';
             $data[$nameColumn] = trim($firstName . ' ' . $lastName);
         }
 

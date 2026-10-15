@@ -43,17 +43,17 @@ return [
     |
     */
 
-    'oauth_url' => env('SSO_OAUTH_URL', env('ARSY_OAUTH_URL')),
-    'client_id' => env('SSO_CLIENT_ID', env('ARSY_CLIENT_ID')),
-    'client_secret' => env('SSO_CLIENT_SECRET', env('ARSY_CLIENT_SECRET')),
+    'oauth_url' => env('SSO_OAUTH_URL'),
+    'client_id' => env('SSO_CLIENT_ID'),
+    'client_secret' => env('SSO_CLIENT_SECRET'),
     
     // Secreto global (Firma la cookie ssotoken)
     'shared_secret' => env('SSO_COOKIE_SECRET'),
     
     // Secretos por aplicación
     'webhooks' => [
-        'sso' => env('SSO_WEBHOOK_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
-        'billing' => env('SSO_BILLING_SECRET', env('ARSY_BILLING_WEBHOOK_SECRET')),
+        'sso' => env('SSO_WEBHOOK_SECRET'),
+        'billing' => env('SSO_BILLING_SECRET'),
     ],
 
     /*

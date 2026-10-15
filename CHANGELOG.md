@@ -5,6 +5,14 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Cambiado
+
+- **Incompatible.** Solo se leen las variables `SSO_*`; los alias `ARSY_*`
+  ya no sirven.
+- **Incompatible.** `POST /api/auth/token` acepta solo la forma v1 de
+  `/api/user`: sin `id` en la raíz responde error, y el nombre sale de
+  `first_name` y `last_name`, nunca de `name`.
+
 ### Añadido
 
 - Suite propia con Orchestra Testbench y PHPUnit (`composer test`).
