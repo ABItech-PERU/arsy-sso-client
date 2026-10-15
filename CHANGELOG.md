@@ -23,6 +23,9 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- `routes.auth` (`SSO_AUTH_ROUTES_ENABLED`, `true` por defecto) apaga
+  `GET /login` y `POST /logout` cuando el satélite trae sus propias rutas
+  de auth.
 - Suite propia con Orchestra Testbench y PHPUnit (`composer test`).
 - Comando `arsy-sso:link-user {email} {sso_id}` que vincula a mano una
   cuenta local sin `sso_id` con su usuario de account y lo deja en el log.

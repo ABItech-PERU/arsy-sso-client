@@ -4,14 +4,18 @@ namespace Arsy\SSOClient\Tests;
 
 use Arsy\SSOClient\Providers\SsoClientServiceProvider;
 use Arsy\SSOClient\Tests\Fixtures\User;
-use Laravel\Socialite\SocialiteServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use SocialiteProviders\Manager\ServiceProvider as SocialiteManagerServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
+    /**
+     * El satélite descubre el provider del manager, que extiende el de
+     * Socialite y dispara `SocialiteWasCalled` para registrar el driver.
+     */
     protected function getPackageProviders($app): array
     {
-        return [SocialiteServiceProvider::class, SsoClientServiceProvider::class];
+        return [SocialiteManagerServiceProvider::class, SsoClientServiceProvider::class];
     }
 
     protected function defineEnvironment($app): void

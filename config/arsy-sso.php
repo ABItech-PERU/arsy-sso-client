@@ -118,12 +118,16 @@ return [
     | Rutas opcionales
     |--------------------------------------------------------------------------
     |
+    | 'auth': GET /login y POST /logout, con nombre login y logout. Se apagan
+    | si el satélite trae sus propias rutas de auth. Activadas por defecto.
+    |
     | 'token_exchange': POST /api/auth/token canjea un token de la Central por
     | un token local (clientes móviles/escritorio). Requiere Sanctum
     | (HasApiTokens) y columnas de token en users. Desactivado por defecto.
     |
     */
     'routes' => [
+        'auth' => (bool) env('SSO_AUTH_ROUTES_ENABLED', true),
         'token_exchange' => (bool) env('SSO_TOKEN_EXCHANGE_ENABLED', false),
     ],
 

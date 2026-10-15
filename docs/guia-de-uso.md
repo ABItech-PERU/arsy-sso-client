@@ -76,6 +76,7 @@ SSO_BILLING_SECRET=tu_billing_secret
 # Opcionales
 SSO_SERVICE_TIMEOUT=15              # segundos, llamadas servidor-a-servidor
 SSO_TOKEN_EXCHANGE_ENABLED=false    # POST /api/auth/token (requiere Sanctum)
+SSO_AUTH_ROUTES_ENABLED=true        # GET /login y POST /logout del paquete
 ```
 
 ## 3. Preparar Base de Datos
@@ -97,6 +98,11 @@ protected $fillable = [ 'name', 'email', 'password', 'sso_id', 'sso_last_login_a
 El paquete inyecta las rutas automáticamente.
 - **Login:** `<a href="{{ route('login') }}">Iniciar Sesión</a>`
 - **Logout:** Haz un POST a `{{ route('logout') }}`. Ejecuta un Hard-Logout local y en la central.
+
+Las rutas `login` y `logout` chocan con las de auth del satélite. Quita
+las del satélite o apaga las del paquete con
+`SSO_AUTH_ROUTES_ENABLED=false`; `/auth/silent` y `/auth/callback` siguen
+activas.
 
 ## 5. Auto-Login Silencioso e Híbrido
 

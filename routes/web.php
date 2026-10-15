@@ -6,10 +6,13 @@ use Arsy\SSOClient\Http\Controllers\SsoTokenController;
 use Arsy\SSOClient\Http\Controllers\SsoWebhookController;
 
 Route::middleware(['web'])->group(function () {
-    Route::get('/login', [SsoLoginController::class, 'login'])->name('login');
+    if (config('arsy-sso.routes.auth', true)) {
+        Route::get('/login', [SsoLoginController::class, 'login'])->name('login');
+        Route::post('/logout', [SsoLoginController::class, 'logout'])->name('logout');
+    }
+
     Route::get('/auth/silent', [SsoLoginController::class, 'silentLogin'])->name('sso.silent');
     Route::get('/auth/callback', [SsoLoginController::class, 'callback']);
-    Route::post('/logout', [SsoLoginController::class, 'logout'])->name('logout');
 });
 
 Route::middleware(['api'])->prefix('api')->group(function () {

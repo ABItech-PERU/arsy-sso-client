@@ -53,11 +53,12 @@ al usuario por `sso_id` y guarda de él lo mínimo.
    `handleCallback()` devuelve `null` y el callback vuelve a
    `url.intended` sin mostrar error. `rememberIntendedUrl()` guarda la
    página antes del salto, salvo en rutas de auth.
-5. **Rutas.** `GET /login` (`login`), `GET /auth/silent`,
-   `GET /auth/callback`, `POST /logout` (`logout`) y, con
+5. **Rutas.** `GET /auth/silent`, `GET /auth/callback`, con
+   `routes.auth` (`SSO_AUTH_ROUTES_ENABLED`, activa por defecto)
+   `GET /login` (`login`) y `POST /logout` (`logout`), y con
    `SSO_TOKEN_EXCHANGE_ENABLED`, `POST /api/auth/token`.
-   - Chocan con las rutas de auth del satélite; se quitan las del
-     satélite.
+   - `login` y `logout` chocan con las rutas de auth del satélite; se
+     quitan las del satélite o se apagan las del paquete.
    - `/auth/callback` no se renombra, porque account tiene registrada
      esa URL de cada satélite.
 6. **Un secreto por propósito** (`docs/satelites.md` §6 de account).

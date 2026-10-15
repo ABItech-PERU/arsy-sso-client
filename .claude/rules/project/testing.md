@@ -13,8 +13,8 @@ DIRECTIVA: la suite corre en Orchestra Testbench sin app host, y
 ## Reglas
 
 1. **Suite.** Se corre con el comando de `CLAUDE.md` §2, en la raíz.
-   - `tests/TestCase.php` registra `SocialiteServiceProvider` y el
-     provider del paquete, y fija una `app.key` aleatoria por ejecución.
+   - `tests/TestCase.php` registra el provider de
+     `socialiteproviders/manager`, que el satélite descubre, y el del paquete, y fija una `app.key` aleatoria por ejecución.
    - Pruebas en `tests/Feature/`, espejo de `src/`, con métodos
      `test_<comportamiento>` en inglés y textos en español.
    - Sesión y caché `array` desde `phpunit.xml.dist`; red con
