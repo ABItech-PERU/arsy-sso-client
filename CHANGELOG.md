@@ -20,6 +20,14 @@ y versionado [SemVer](https://semver.org/lang/es/).
 - Un fallo del callback OAuth muestra un mensaje fijo y deja la excepción
   en el log; el usuario ya no ve su detalle interno.
 
+### Seguridad
+
+- El login (callback OAuth, cookie `ssotoken` y `POST /api/auth/token`)
+  identifica al usuario solo por `sso_id`. Antes tomaba por su correo una
+  cuenta local de otra persona; ahora un correo ya usado se rechaza y la
+  cuenta se vincula con `arsy-sso:link-user`. El canje de token exige el
+  `id` del usuario.
+
 ## [1.2.0] - 2026-10-10
 
 ### Añadido

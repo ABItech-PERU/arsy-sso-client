@@ -155,10 +155,6 @@ class SsoAuthenticationService
 
         $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
 
-        if (! $user) {
-            $user = $userModelClass::where('email', $email)->first();
-        }
-
         $data = [
             'sso_id' => (string) $ssoId,
             'email' => $email,
@@ -173,6 +169,7 @@ class SsoAuthenticationService
         if ($user) {
             $user->forceFill($data)->save();
         } else {
+            $this->rejectTakenEmail($userModelClass, $email);
             $user = $userModelClass::forceCreate($data);
         }
 
@@ -190,15 +187,12 @@ class SsoAuthenticationService
 
         $user = $userModelClass::where('sso_id', (string) $idpUser->getId())->first();
 
-        if (! $user) {
-            $user = $userModelClass::where('email', $idpUser->getEmail())->first();
-        }
-
         $data = $this->mapUserData($idpUser);
 
         if ($user) {
             $user->forceFill($data)->save();
         } else {
+            $this->rejectTakenEmail($userModelClass, $idpUser->getEmail());
             $user = $userModelClass::forceCreate($data);
         }
 
@@ -222,16 +216,14 @@ class SsoAuthenticationService
             throw new RuntimeException('El servidor SSO no devolvio un email de usuario.');
         }
 
-        $user = null;
-        if ($ssoId) {
-            $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
-        }
-        if (! $user) {
-            $user = $userModelClass::where('email', $email)->first();
+        if (! $ssoId) {
+            throw new RuntimeException('El servidor SSO no devolvió el id del usuario.');
         }
 
+        $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
+
         $data = [
-            'sso_id' => $ssoId ? (string) $ssoId : ($user->sso_id ?? null),
+            'sso_id' => (string) $ssoId,
             'email' => $email,
             'sso_last_login_at' => now(),
         ];
@@ -252,10 +244,22 @@ class SsoAuthenticationService
         if ($user) {
             $user->forceFill($data)->save();
         } else {
+            $this->rejectTakenEmail($userModelClass, $email);
             $user = $userModelClass::forceCreate($data);
         }
 
         return $user;
+    }
+
+    /**
+     * El login identifica solo por `sso_id`. Una cuenta local con el mismo
+     * correo se vincula a mano con `arsy-sso:link-user`, nunca aquí.
+     */
+    private function rejectTakenEmail(string $userModelClass, ?string $email): void
+    {
+        if ($email !== null && $userModelClass::where('email', $email)->exists()) {
+            throw new RuntimeException('El correo ya lo usa otra cuenta local; se vincula con php artisan arsy-sso:link-user.');
+        }
     }
 
     /**

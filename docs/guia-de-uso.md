@@ -177,3 +177,18 @@ $response = Http::arsyAccount(['billing:checkout'])
 clientes móviles o de escritorio del satélite. Está **desactivado por
 defecto**; actívalo con `SSO_TOKEN_EXCHANGE_ENABLED=true` solo si el modelo
 `User` usa `HasApiTokens` (Sanctum) y tiene columnas de token.
+
+## 10. Cuentas locales previas
+
+El login identifica al usuario solo por `sso_id`. Si el satélite creó
+antes una cuenta local con el mismo correo (pre-aprovisionada, sin
+`sso_id`), el login la rechaza y no la toma. Un administrador la vincula
+a mano con el `id` (UUID) del usuario en la Central:
+
+```bash
+php artisan arsy-sso:link-user ana@empresa.com 7c9e6679-7425-40de-944b-e07fc1f90ae7
+```
+
+- Solo vincula una cuenta sin `sso_id` y con un `sso_id` que ninguna otra
+  cuenta use; nunca reescribe uno existente.
+- Deja en el log un `notice` con `user_id` y `sso_id`.
