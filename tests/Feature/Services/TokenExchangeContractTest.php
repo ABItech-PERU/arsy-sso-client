@@ -5,6 +5,7 @@ namespace Arsy\SSOClient\Tests\Feature\Services;
 use Arsy\SSOClient\Services\SsoAuthenticationService;
 use Arsy\SSOClient\Tests\Concerns\UsesUsersTable;
 use Arsy\SSOClient\Tests\Fixtures\TokenUser;
+use Arsy\SSOClient\Tests\Fixtures\User;
 use Arsy\SSOClient\Tests\TestCase;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -70,6 +71,21 @@ class TokenExchangeContractTest extends TestCase
         app(SsoAuthenticationService::class)->exchangeToken('token-de-account');
 
         $this->assertSame('QUISPE', TokenUser::query()->sole()->name);
+    }
+
+    public function test_a_user_model_without_sanctum_tokens_is_rejected_before_calling_account(): void
+    {
+        config(['arsy-sso.user_model' => User::class]);
+        $this->fakeUserInfo(['id' => self::SSO_ID, 'email' => 'ana@example.com', 'first_name' => 'ANA']);
+
+        $this->assertThrows(
+            fn () => app(SsoAuthenticationService::class)->exchangeToken('token-de-account'),
+            RuntimeException::class,
+            'El canje de token exige que el modelo de usuario use HasApiTokens de Sanctum.',
+        );
+
+        Http::assertNothingSent();
+        $this->assertSame(0, User::query()->count());
     }
 
     /**

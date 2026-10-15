@@ -10,6 +10,11 @@ y versionado [SemVer](https://semver.org/lang/es/).
 - **Incompatible.** `SSO_AUTO_LOGIN_METHOD` vale `oauth` por defecto, el
   método que pide account; quien dependía de `cookie` sin fijarlo debe
   ponerlo en su `.env`.
+- **Incompatible.** Los eventos del paquete ya no usan el trait
+  `Dispatchable` de `laravel/framework`; se disparan con `event(new …)` y
+  ya no traen `::dispatch()`.
+- `composer.json` declara los `illuminate/*` que usa `src/` y sugiere
+  `inertiajs/inertia-laravel` y `laravel/sanctum`.
 - **Incompatible.** Solo se leen las variables `SSO_*`; los alias `ARSY_*`
   ya no sirven.
 - **Incompatible.** `POST /api/auth/token` acepta solo la forma v1 de
@@ -24,6 +29,9 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ### Corregido
 
+- `POST /api/auth/token` con un modelo de usuario sin `HasApiTokens`
+  responde un error en español antes de llamar a account; ya no crea al
+  usuario para fallar después en `createToken()`.
 - El `redirect` de OAuth se arma con `config('app.url')`; con
   `config:cache` quedaba relativo (`/auth/callback`).
 - `POST /logout` invalida la sesión y regenera el token CSRF; la sesión

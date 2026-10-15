@@ -87,6 +87,10 @@ class SsoAuthenticationService
      */
     public function exchangeToken(string $accessToken): array
     {
+        if (! method_exists(config('arsy-sso.user_model'), 'createToken')) {
+            throw new RuntimeException('El canje de token exige que el modelo de usuario use HasApiTokens de Sanctum.', 500);
+        }
+
         $ssoUrl = config('arsy-sso.oauth_url');
 
         try {

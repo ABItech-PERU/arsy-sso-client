@@ -2,7 +2,6 @@
 
 namespace Arsy\SSOClient\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
@@ -14,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class SsoWebhookUserSuspended
 {
-    use Dispatchable, SerializesModels;
+    use SerializesModels;
 
     public $user;
 

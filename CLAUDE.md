@@ -101,13 +101,11 @@ con el `stack` declarado en su `claude-sync.json`.
 | Tema | Estado |
 |---|---|
 | Contraseña obligatoria | la migración del paquete no hace `users.password` nullable ni la guía lo pide; con la tabla de Laravel, crear un usuario SSO falla por `NOT NULL`; tarea DT-12 |
-| Modelo de la app en `src/` | 7 `config('arsy-sso.user_model', '\\App\\Models\\User')` en `SsoAuthenticationService.php:148,189,213` y `SsoWebhookHandlerService.php:51,83,105,131`; tarea DT-04 |
+| Modelo de la app en `src/` | 7 `config('arsy-sso.user_model', '\\App\\Models\\User')` en `SsoAuthenticationService.php:152,190,211` y `SsoWebhookHandlerService.php:51,83,105,131`; tarea DT-04 |
 | Inertia en línea | `\Inertia\Inertia::location()` y `class_exists('\Inertia\Inertia')` en `SsoAutoLogin.php:43-44`; string de clase en `SsoAuthenticationService.php:26`; tarea DT-04 |
 | Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:35-54`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
 | Rutas sin prefijo | `login` y `logout` sin nombre propio ni opción para desactivarlas (`routes/web.php:9,12`; `tech/laravel-package.md` regla 4); tarea DT-05 |
-| Dependencias opcionales | Inertia y Sanctum se usan (`SsoAuthenticationService.php:12,26`, `SsoAutoLogin.php:43-44`, `createToken()` en `:111`) sin estar en `suggest` de `composer.json` (`project/architecture.md` regla 5); tarea DT-03 |
-| Rangos sin CI | `composer.json:7-8` admite PHP `^8.1\|^8.2\|^8.3` e `illuminate/support` `^10.0\|^11.0\|^12.0\|^13.0`; la suite pasa a mano con Laravel 10 en PHP 8.1, 11 y 12 en PHP 8.3 y 13 en PHP 8.3 y 8.5, sin CI que repita la matriz (`tech/laravel-package.md` regla 5); tarea DT-06 |
-| Dependencias | `require` solo trae `illuminate/support`; `src/` usa además `Illuminate\Http\Client`, `Routing`, `Redis`, `Session`, `Cache` y `Events` (`tech/laravel-package.md` regla 5); tarea DT-03 |
+| Rangos sin CI | `composer.json:7-20` admite PHP `^8.1\|^8.2\|^8.3` e `illuminate/*` `^10.0\|^11.0\|^12.0\|^13.0`; la suite pasa a mano con Laravel 10 en PHP 8.1, 11 y 12 en PHP 8.3 y 13 en PHP 8.3 y 8.5, sin CI que repita la matriz (`tech/laravel-package.md` regla 5); tarea DT-06 |
 | Código muerto | `hasIdpSession()` (`SsoAuthenticationService.php:80`) y `services.arsy_account.webhook_secret` (`SsoClientServiceProvider.php:35`) sin consumidor aquí ni en los satélites; tarea DT-07 |
 | Comentarios que repiten el código | `SsoClientServiceProvider.php:27,50-71`, `SsoAutoLogin.php:23,30,56,82,86`, `SsoWebhookHandlerService.php:91,109,135` (`core/02`); tarea DT-08 |
 | Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8); tarea DT-09 |
