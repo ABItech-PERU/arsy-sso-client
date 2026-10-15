@@ -22,8 +22,9 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ### Seguridad
 
-- El login (callback OAuth, cookie `ssotoken` y `POST /api/auth/token`)
-  identifica al usuario solo por `sso_id`. Antes tomaba por su correo una
+- **Incompatible; sale en 2.0.0.** El login (callback OAuth, cookie
+  `ssotoken` y `POST /api/auth/token`) identifica al usuario solo por
+  `sso_id`. Antes tomaba por su correo una
   cuenta local de otra persona; ahora un correo ya usado se rechaza y la
   cuenta se vincula con `arsy-sso:link-user`. El canje de token exige el
   `id` del usuario.
