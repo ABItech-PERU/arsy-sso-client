@@ -36,7 +36,7 @@ class SsoClientServiceProvider extends ServiceProvider
             'services.laravelpassport' => [
                 'client_id' => config('arsy-sso.client_id'),
                 'client_secret' => config('arsy-sso.client_secret'),
-                'redirect' => env('APP_URL') . '/auth/callback',
+                'redirect' => config('app.url') . '/auth/callback',
                 'host' => config('arsy-sso.oauth_url'),
             ],
         ]);

@@ -9,6 +9,11 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 - Suite propia con Orchestra Testbench y PHPUnit (`composer test`).
 
+### Corregido
+
+- El `redirect` de OAuth se arma con `config('app.url')`; con
+  `config:cache` quedaba relativo (`/auth/callback`).
+
 ## [1.2.0] - 2026-10-10
 
 ### Añadido
