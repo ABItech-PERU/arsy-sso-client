@@ -105,7 +105,6 @@ con el `stack` declarado en su `claude-sync.json`.
 |---|---|
 | Contraseña obligatoria | la migración del paquete no hace `users.password` nullable ni la guía lo pide; con la tabla de Laravel, crear un usuario SSO falla por `NOT NULL`; tarea DT-12 |
 | Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:35-54`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
-| Código muerto | `hasIdpSession()` (`SsoAuthenticationService.php:80`) y `services.arsy_account.webhook_secret` (`SsoClientServiceProvider.php:35`) sin consumidor aquí ni en los satélites; tarea DT-07 |
 | Comentarios que repiten el código | `SsoClientServiceProvider.php:27,50-71`, `SsoAutoLogin.php:23,30,56,82,86`, `SsoWebhookHandlerService.php:91,109,135` (`core/02`); tarea DT-08 |
 | Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8); tarea DT-09 |
 | Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); `docs/guia-de-uso.md` instala `^1.1.0` (`:20,34`) y apunta a `c:/laragon/www/arsy-sso-client` (`:43`); tarea DT-10 |

@@ -33,6 +33,12 @@ y versionado [SemVer](https://semver.org/lang/es/).
 - Comando `arsy-sso:link-user {email} {sso_id}` que vincula a mano una
   cuenta local sin `sso_id` con su usuario de account y lo deja en el log.
 
+### Eliminado
+
+- **Incompatible.** `SsoAuthenticationService::hasIdpSession()` y la
+  config `services.arsy_account.webhook_secret`, sin consumidor; el
+  webhook lee `arsy-sso.webhooks.sso`.
+
 ### Corregido
 
 - `POST /api/auth/token` con un modelo de usuario sin `HasApiTokens`

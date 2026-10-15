@@ -75,14 +75,6 @@ class SsoAuthenticationService
     }
 
     /**
-     * Verifica si existe una sesión activa leyendo la cookie compartida del IDP.
-     */
-    public function hasIdpSession(): bool
-    {
-        return request()->cookie('arsy_logged_in') === '1';
-    }
-
-    /**
      * Intercambia un token de acceso del IDP por un token local (API/Sanctum).
      */
     public function exchangeToken(string $accessToken): array
