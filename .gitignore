@@ -1,6 +1,7 @@
 /vendor/
 /composer.lock
 .phpunit.result.cache
+/.phpunit.cache/
 
 # Entornos y logs
 .env

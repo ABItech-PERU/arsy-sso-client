@@ -3,6 +3,12 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y versionado [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- Suite propia con Orchestra Testbench y PHPUnit (`composer test`).
+
 ## [1.2.0] - 2026-10-10
 
 ### Añadido
