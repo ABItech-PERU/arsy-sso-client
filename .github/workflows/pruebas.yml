@@ -1,0 +1,44 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phpunit:
+    name: PHP ${{ matrix.php }} con Laravel ${{ matrix.laravel }}${{ matrix.lowest && ' (mínimas)' || '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { php: '8.1', laravel: '10', testbench: '8', lowest: true }
+          - { php: '8.3', laravel: '11', testbench: '9' }
+          - { php: '8.3', laravel: '12', testbench: '10' }
+          - { php: '8.3', laravel: '13', testbench: '11' }
+          - { php: '8.5', laravel: '13', testbench: '11' }
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite
+          coverage: none
+
+      - run: composer validate --strict
+
+      - name: Fijar Laravel ${{ matrix.laravel }}
+        run: |
+          composer require "illuminate/support:^${{ matrix.laravel }}.0" --no-update
+          composer require --dev "orchestra/testbench:^${{ matrix.testbench }}.0" --no-update
+
+      - run: composer update --prefer-dist --no-interaction --no-progress ${{ matrix.lowest && '--prefer-lowest' || '' }}
+
+      - run: vendor/bin/phpunit

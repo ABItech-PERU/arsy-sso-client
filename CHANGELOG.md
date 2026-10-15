@@ -15,6 +15,9 @@ y versionado [SemVer](https://semver.org/lang/es/).
   ya no traen `::dispatch()`.
 - `composer.json` declara los `illuminate/*` que usa `src/` y sugiere
   `inertiajs/inertia-laravel` y `laravel/sanctum`.
+- PHP pasa de `^8.1|^8.2|^8.3` a `^8.1`. El CI prueba PHP 8.1 con
+  Laravel 10 en sus versiones mínimas, 8.3 con Laravel 11, 12 y 13 y 8.5
+  con Laravel 13.
 - **Incompatible.** Solo se leen las variables `SSO_*`; los alias `ARSY_*`
   ya no sirven.
 - **Incompatible.** `POST /api/auth/token` acepta solo la forma v1 de
