@@ -23,7 +23,7 @@ class SsoAuthenticationService
     {
         $redirectResponse = Socialite::driver('laravelpassport')->redirect();
 
-        if (class_exists('Inertia\Inertia') && request()->hasHeader('X-Inertia')) {
+        if (class_exists(Inertia::class) && request()->hasHeader('X-Inertia')) {
             return Inertia::location($redirectResponse->getTargetUrl());
         }
 
@@ -149,7 +149,7 @@ class SsoAuthenticationService
      */
     public function resolveCookieSession(array $payload): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $ssoId = $payload['sub'] ?? null;
         $email = $payload['email'] ?? null;
 
@@ -187,7 +187,7 @@ class SsoAuthenticationService
      */
     private function findOrCreateUser($idpUser): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
 
         $user = $userModelClass::where('sso_id', (string) $idpUser->getId())->first();
 
@@ -208,7 +208,7 @@ class SsoAuthenticationService
      */
     private function findOrCreateUserFromPayload(array $payload): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $nameColumn = config('arsy-sso.user_name_column', 'name');
         $lastNameColumn = config('arsy-sso.user_lastname_column');
         $avatarColumn = config('arsy-sso.user_avatar_column');

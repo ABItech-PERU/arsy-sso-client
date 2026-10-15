@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 use Arsy\SSOClient\Services\SsoAuthenticationService;
 
 class SsoAutoLogin
@@ -40,8 +41,8 @@ class SsoAutoLogin
                     $request->session()->put('sso_silent_attempted', true);
                     $this->rememberIntendedUrl($request);
 
-                    if ($request->header('X-Inertia') && class_exists('\Inertia\Inertia')) {
-                        return \Inertia\Inertia::location(url('/auth/silent'));
+                    if ($request->header('X-Inertia') && class_exists(Inertia::class)) {
+                        return Inertia::location(url('/auth/silent'));
                     }
                     
                     return redirect()->to('/auth/silent');

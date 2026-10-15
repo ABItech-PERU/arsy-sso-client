@@ -48,7 +48,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $userId)->first();
 
         if ($user) {
@@ -80,7 +80,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
@@ -102,7 +102,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
@@ -128,7 +128,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {

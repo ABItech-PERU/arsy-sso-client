@@ -101,8 +101,6 @@ con el `stack` declarado en su `claude-sync.json`.
 | Tema | Estado |
 |---|---|
 | Contraseña obligatoria | la migración del paquete no hace `users.password` nullable ni la guía lo pide; con la tabla de Laravel, crear un usuario SSO falla por `NOT NULL`; tarea DT-12 |
-| Modelo de la app en `src/` | 7 `config('arsy-sso.user_model', '\\App\\Models\\User')` en `SsoAuthenticationService.php:152,190,211` y `SsoWebhookHandlerService.php:51,83,105,131`; tarea DT-04 |
-| Inertia en línea | `\Inertia\Inertia::location()` y `class_exists('\Inertia\Inertia')` en `SsoAutoLogin.php:43-44`; string de clase en `SsoAuthenticationService.php:26`; tarea DT-04 |
 | Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:35-54`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
 | Rutas sin prefijo | `login` y `logout` sin nombre propio ni opción para desactivarlas (`routes/web.php:9,12`; `tech/laravel-package.md` regla 4); tarea DT-05 |
 | Rangos sin CI | `composer.json:7-20` admite PHP `^8.1\|^8.2\|^8.3` e `illuminate/*` `^10.0\|^11.0\|^12.0\|^13.0`; la suite pasa a mano con Laravel 10 en PHP 8.1, 11 y 12 en PHP 8.3 y 13 en PHP 8.3 y 8.5, sin CI que repita la matriz (`tech/laravel-package.md` regla 5); tarea DT-06 |
