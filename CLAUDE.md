@@ -103,6 +103,6 @@ con el `stack` declarado en su `claude-sync.json`.
 
 | Tema | Estado |
 |---|---|
-| Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:35-54`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
+| Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:34-53`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
 | Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8); tarea DT-09 |
 | Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); `docs/guia-de-uso.md` instala `^1.1.0` (`:20,34`) y apunta a `c:/laragon/www/arsy-sso-client` (`:43`); tarea DT-10 |

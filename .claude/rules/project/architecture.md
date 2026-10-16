@@ -33,7 +33,7 @@ account, como concreción de `tech/laravel-package.md`.
    - Es una excepción de `tech/laravel-package.md` regla 1. Esa config
      sale solo de la del paquete, sin petición, y debe estar lista antes
      del `boot()` de cualquier provider que resuelva Socialite.
-   - `boot()` carga `routes/web.php` y la migración, que el satélite no
+   - `boot()` carga `routes/web.php` y las migraciones, que el satélite no
      necesita publicar, y registra el listener de Socialite,
      `SessionIndexSubscriber`, el alias `sso.auto_login` y la macro
      `Http::arsyAccount`. En consola registra `arsy-sso:link-user`.
@@ -49,7 +49,8 @@ account, como concreción de `tech/laravel-package.md`.
    y van en `suggest` (`tech/laravel-package.md`, tabla). El código que
    los usa comprueba `class_exists(Inertia::class)`, con
    `use Inertia\Inertia;` arriba, o depende de su opción de config
-   (`routes.token_exchange`).
+   (`routes.token_exchange`). `exchangeToken()` lanza `RuntimeException`
+   en español si el modelo no tiene el `createToken()` de Sanctum.
 6. **Evolución.** El paquete se convierte en `arsy/platform-client`
    (tareas en `CLAUDE.md` §1). Aquí entran correcciones y la base del
    paquete nuevo; un módulo nuevo (inbox, notificaciones, marca) espera
