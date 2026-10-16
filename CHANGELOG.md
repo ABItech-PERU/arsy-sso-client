@@ -17,7 +17,8 @@ y versionado [SemVer](https://semver.org/lang/es/).
   `inertiajs/inertia-laravel` y `laravel/sanctum`.
 - **Incompatible.** Deja de admitir Laravel 10 y 11 y PHP anterior a 8.2,
   porque Laravel 10 y 11 ya no tienen versión sin avisos de seguridad. Los
-  `illuminate/*` piden `^12.0|^13.0` y PHP `^8.2`. El CI prueba PHP 8.2
+  `illuminate/*` piden `^12.69|^13.30`, las primeras versiones sin avisos,
+  y PHP `^8.2`. El CI prueba PHP 8.2
   con Laravel 12 en sus versiones mínimas, 8.3 con Laravel 12 y 13 y 8.5
   con Laravel 13, con el bloqueo de avisos de Composer activo.
 - **Incompatible.** Solo se leen las variables `SSO_*`; los alias `ARSY_*`
