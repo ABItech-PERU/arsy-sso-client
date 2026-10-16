@@ -42,4 +42,4 @@ Para evitar fricción en la navegación de aplicaciones satélite, implementamos
   3. **Mitigación CORS en SPAs:** Si esta intercepción ocurre durante un salto de Inertia.js (Ajax), el middleware emite un evento de recarga forzada (`Inertia::location`) para romper el ciclo XHR y permitir que el navegador principal complete el salto de dominios sin bloqueos de seguridad.
 
 ## 8. Versionamiento Seguro
-El `composer.json` se configuró con restricciones (`^10.0|^11.0|^12.0|^13.0` para Laravel y `^8.1|^8.2|^8.3` para PHP) para asegurar la retrocompatibilidad, permitiendo que el paquete se instale sin conflictos de dependencias en cualquier ecosistema moderno.
+El `composer.json` admite Laravel `^12.0|^13.0` y PHP `^8.2`, las versiones de Laravel que aún tienen parches de seguridad. El CI prueba el piso y el techo de esos rangos.

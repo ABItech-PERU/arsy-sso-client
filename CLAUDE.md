@@ -35,8 +35,9 @@ docker exec arsy_academy_app php artisan test --filter=Sso
 ## 3. Puertas de calidad
 
 Sin linters. El CI (`.github/workflows/pruebas.yml`) corre las puertas 2
-y 3 en PHP 8.1 con Laravel 10 (dependencias mínimas), 8.3 con 11, 12 y
-13 y 8.5 con 13. Antes de entregar, estas cuatro.
+y 3 en PHP 8.2 con Laravel 12 (dependencias mínimas), 8.3 con 12 y 13 y
+8.5 con 13, con el bloqueo de avisos de Composer activo. Antes de
+entregar, estas cuatro.
 
 1. `php -l` sin errores en cada archivo tocado.
 2. `composer validate` sin avisos.

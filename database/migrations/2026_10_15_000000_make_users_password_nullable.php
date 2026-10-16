@@ -12,7 +12,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasColumn('users', 'password') || ! $this->canChangeColumns()) {
+        if (! Schema::hasColumn('users', 'password')) {
             return;
         }
 
@@ -26,18 +26,5 @@ return new class extends Migration
      */
     public function down(): void
     {
-    }
-
-    /**
-     * Laravel 10 cambia columnas de SQLite solo con doctrine/dbal; sin él la
-     * columna queda como está y la guía de uso dice qué hacer.
-     */
-    private function canChangeColumns(): bool
-    {
-        $connection = Schema::getConnection();
-
-        return $connection->getDriverName() !== 'sqlite'
-            || ! method_exists($connection, 'isDoctrineAvailable')
-            || $connection->isDoctrineAvailable();
     }
 };

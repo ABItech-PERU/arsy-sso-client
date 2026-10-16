@@ -15,9 +15,11 @@ y versionado [SemVer](https://semver.org/lang/es/).
   ya no traen `::dispatch()`.
 - `composer.json` declara los `illuminate/*` que usa `src/` y sugiere
   `inertiajs/inertia-laravel` y `laravel/sanctum`.
-- PHP pasa de `^8.1|^8.2|^8.3` a `^8.1`. El CI prueba PHP 8.1 con
-  Laravel 10 en sus versiones mínimas, 8.3 con Laravel 11, 12 y 13 y 8.5
-  con Laravel 13.
+- **Incompatible.** Deja de admitir Laravel 10 y 11 y PHP anterior a 8.2,
+  porque Laravel 10 y 11 ya no tienen versión sin avisos de seguridad. Los
+  `illuminate/*` piden `^12.0|^13.0` y PHP `^8.2`. El CI prueba PHP 8.2
+  con Laravel 12 en sus versiones mínimas, 8.3 con Laravel 12 y 13 y 8.5
+  con Laravel 13, con el bloqueo de avisos de Composer activo.
 - **Incompatible.** Solo se leen las variables `SSO_*`; los alias `ARSY_*`
   ya no sirven.
 - **Incompatible.** `POST /api/auth/token` acepta solo la forma v1 de
@@ -43,8 +45,7 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 - Crear un usuario SSO con la tabla `users` de Laravel ya no falla por
   `NOT NULL` en `password`. Una migración nueva deja la columna nullable
-  si existe; en Laravel 10 con SQLite exige `doctrine/dbal` y sin él no
-  la toca.
+  si existe.
 - `POST /api/auth/token` con un modelo de usuario sin `HasApiTokens`
   responde un error en español antes de llamar a account; ya no crea al
   usuario para fallar después en `createToken()`.

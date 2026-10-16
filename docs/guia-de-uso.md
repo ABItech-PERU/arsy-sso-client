@@ -92,9 +92,6 @@ php artisan migrate
 - Dejan `password` nullable si la columna existe, porque un usuario SSO no
   tiene contraseña local. El cambio redefine la columna como
   `string('password')`, la de la tabla de Laravel.
-- En Laravel 10 con SQLite ese cambio exige `doctrine/dbal`. Sin él la
-  migración no toca la columna; instálalo antes de migrar o haz `password`
-  nullable en una migración del satélite.
 
 El paquete escribe con `forceFill()`, así que sus columnas no van en el
 `$fillable` del modelo.
@@ -112,7 +109,7 @@ activas.
 
 ## 5. Auto-Login Silencioso e Híbrido
 
-Para loguear automáticamente a usuarios que ya están en la Central, registra el middleware en tu `bootstrap/app.php` (Laravel 11+):
+Para loguear automáticamente a usuarios que ya están en la Central, registra el middleware en tu `bootstrap/app.php`:
 
 ```php
 $middleware->web(append: [
@@ -160,7 +157,7 @@ public function handle(SsoUserAuthenticated $event): void
     // Campos disponibles en $idpUser->user: ver docs/satelites.md de Account.
 }
 ```
-En Laravel 11+, el autodescubrimiento registrará tu Listener inmediatamente.
+El autodescubrimiento de eventos de Laravel registrará tu Listener inmediatamente.
 
 ## 8. Llamadas servidor-a-servidor a la Central
 
