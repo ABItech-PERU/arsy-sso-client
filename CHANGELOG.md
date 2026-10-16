@@ -41,6 +41,10 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ### Corregido
 
+- Crear un usuario SSO con la tabla `users` de Laravel ya no falla por
+  `NOT NULL` en `password`. Una migración nueva deja la columna nullable
+  si existe; en Laravel 10 con SQLite exige `doctrine/dbal` y sin él no
+  la toca.
 - `POST /api/auth/token` con un modelo de usuario sin `HasApiTokens`
   responde un error en español antes de llamar a account; ya no crea al
   usuario para fallar después en `createToken()`.

@@ -81,17 +81,23 @@ SSO_AUTH_ROUTES_ENABLED=true        # GET /login y POST /logout del paquete
 
 ## 3. Preparar Base de Datos
 
-Publica la configuración y ejecuta la migración que añade `sso_id` y tokens a tu tabla de usuarios:
+Publica la configuración y ejecuta las migraciones del paquete:
 
 ```bash
 php artisan vendor:publish --tag=arsy-sso-config
 php artisan migrate
 ```
 
-Añade los campos al `$fillable` de tu `app/Models/User.php`:
-```php
-protected $fillable = [ 'name', 'email', 'password', 'sso_id', 'sso_last_login_at' ];
-```
+- Añaden `sso_id` y `sso_last_login_at` a la tabla `users`.
+- Dejan `password` nullable si la columna existe, porque un usuario SSO no
+  tiene contraseña local. El cambio redefine la columna como
+  `string('password')`, la de la tabla de Laravel.
+- En Laravel 10 con SQLite ese cambio exige `doctrine/dbal`. Sin él la
+  migración no toca la columna; instálalo antes de migrar o haz `password`
+  nullable en una migración del satélite.
+
+El paquete escribe con `forceFill()`, así que sus columnas no van en el
+`$fillable` del modelo.
 
 ## 4. Uso del SSO Básico
 

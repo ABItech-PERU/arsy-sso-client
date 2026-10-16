@@ -36,6 +36,7 @@ class TokenExchangeContractTest extends TestCase
         $user = TokenUser::query()->sole();
         $this->assertSame(self::SSO_ID, $user->sso_id);
         $this->assertSame('ANA QUISPE', $user->name);
+        $this->assertNull($user->password);
         $this->assertSame('token-local', $result['token']);
     }
 

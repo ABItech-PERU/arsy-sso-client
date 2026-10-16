@@ -34,8 +34,9 @@ al usuario por `sso_id` y guarda de él lo mínimo.
    - Una cuenta previa sin `sso_id` (la pre-aprovisionada de academy) se
      vincula solo con `php artisan arsy-sso:link-user {email} {sso_id}`,
      que deja un `Log::notice` con `user_id` y `sso_id`.
-2. **BD mínima.** La migración solo agrega `sso_id` y
-   `sso_last_login_at`. Nombre y avatar van a las columnas que fija la
+2. **BD mínima.** Las migraciones solo agregan `sso_id` y
+   `sso_last_login_at` y dejan `users.password` nullable si existe,
+   porque el usuario SSO no tiene contraseña local. Nombre y avatar van a las columnas que fija la
    config (`user_name_column`, `user_lastname_column`,
    `user_avatar_column`); roles y perfil, al listener del satélite de
    `SsoUserAuthenticated`.

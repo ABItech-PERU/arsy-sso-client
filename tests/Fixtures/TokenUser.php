@@ -7,9 +7,6 @@ namespace Arsy\SSOClient\Tests\Fixtures;
  */
 class TokenUser extends User
 {
-    // La tabla de Laravel exige `password`; un usuario SSO no lo trae.
-    protected $attributes = ['password' => 'sin-uso'];
-
     public function createToken(string $name): object
     {
         return (object) ['plainTextToken' => 'token-local'];

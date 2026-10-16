@@ -25,7 +25,7 @@ DIRECTIVA: la suite corre en Orchestra Testbench sin app host, y
      registra el provider antes de `defineEnvironment()`, así que la
      prueba cambia la config y lo registra de nuevo con `force: true`.
    - Con base de datos, el trait `tests/Concerns/UsesUsersTable.php`
-     (tabla `users` de Laravel, migración del paquete y
+     (tabla `users` de Laravel, migraciones del paquete y
      `createLocalUser()`) y el modelo `tests/Fixtures/User.php`, que
      `TestCase` fija como `arsy-sso.user_model`. Modelos,
      `tests/Feature/Console/LinkUserCommandTest.php` y

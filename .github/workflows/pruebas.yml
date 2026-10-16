@@ -44,6 +44,11 @@ jobs:
           composer require "illuminate/support:^${{ matrix.laravel }}.0" --no-update
           composer require --dev "orchestra/testbench:^${{ matrix.testbench }}.0" --no-update
 
+      # Laravel 10 cambia columnas de SQLite solo con doctrine/dbal.
+      - name: Instalar doctrine/dbal
+        if: matrix.laravel == '10'
+        run: composer require --dev "doctrine/dbal:^3.5.1" --no-update
+
       - run: composer update --prefer-dist --no-interaction --no-progress ${{ matrix.lowest && '--prefer-lowest' || '' }}
 
       - run: vendor/bin/phpunit
