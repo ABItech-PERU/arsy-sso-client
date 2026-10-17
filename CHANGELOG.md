@@ -5,6 +5,14 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [2.0.1] - 2026-10-17
+
+### Corregido
+
+- La migración que hace `users.password` nullable ya no toca la columna
+  cuando ya lo es; antes reescribía la tabla y en MySQL borraba el
+  comentario de la columna.
+
 ## [2.0.0] - 2026-10-17
 
 ### Cambiado
