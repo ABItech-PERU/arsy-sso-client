@@ -5,6 +5,8 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [2.0.0] - 2026-10-17
+
 ### Cambiado
 
 - **Incompatible.** `SSO_AUTO_LOGIN_METHOD` vale `oauth` por defecto, el
