@@ -23,7 +23,7 @@ class SsoAuthenticationService
     {
         $redirectResponse = Socialite::driver('laravelpassport')->redirect();
 
-        if (class_exists('Inertia\Inertia') && request()->hasHeader('X-Inertia')) {
+        if (class_exists(Inertia::class) && request()->hasHeader('X-Inertia')) {
             return Inertia::location($redirectResponse->getTargetUrl());
         }
 
@@ -75,18 +75,14 @@ class SsoAuthenticationService
     }
 
     /**
-     * Verifica si existe una sesión activa leyendo la cookie compartida del IDP.
-     */
-    public function hasIdpSession(): bool
-    {
-        return request()->cookie('arsy_logged_in') === '1';
-    }
-
-    /**
      * Intercambia un token de acceso del IDP por un token local (API/Sanctum).
      */
     public function exchangeToken(string $accessToken): array
     {
+        if (! method_exists(config('arsy-sso.user_model'), 'createToken')) {
+            throw new RuntimeException('El canje de token exige que el modelo de usuario use HasApiTokens de Sanctum.', 500);
+        }
+
         $ssoUrl = config('arsy-sso.oauth_url');
 
         try {
@@ -103,7 +99,7 @@ class SsoAuthenticationService
             throw new RuntimeException('Token SSO invalido o expirado.', 401);
         }
 
-        $payload = $response->json('data') ?? $response->json();
+        $payload = $response->json();
         $user = $this->findOrCreateUserFromPayload($payload);
 
         $this->persistTokens($user, $payload);
@@ -145,7 +141,7 @@ class SsoAuthenticationService
      */
     public function resolveCookieSession(array $payload): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $ssoId = $payload['sub'] ?? null;
         $email = $payload['email'] ?? null;
 
@@ -154,10 +150,6 @@ class SsoAuthenticationService
         }
 
         $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
-
-        if (! $user) {
-            $user = $userModelClass::where('email', $email)->first();
-        }
 
         $data = [
             'sso_id' => (string) $ssoId,
@@ -173,6 +165,7 @@ class SsoAuthenticationService
         if ($user) {
             $user->forceFill($data)->save();
         } else {
+            $this->rejectTakenEmail($userModelClass, $email);
             $user = $userModelClass::forceCreate($data);
         }
 
@@ -186,19 +179,16 @@ class SsoAuthenticationService
      */
     private function findOrCreateUser($idpUser): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
 
         $user = $userModelClass::where('sso_id', (string) $idpUser->getId())->first();
-
-        if (! $user) {
-            $user = $userModelClass::where('email', $idpUser->getEmail())->first();
-        }
 
         $data = $this->mapUserData($idpUser);
 
         if ($user) {
             $user->forceFill($data)->save();
         } else {
+            $this->rejectTakenEmail($userModelClass, $idpUser->getEmail());
             $user = $userModelClass::forceCreate($data);
         }
 
@@ -210,38 +200,37 @@ class SsoAuthenticationService
      */
     private function findOrCreateUserFromPayload(array $payload): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $nameColumn = config('arsy-sso.user_name_column', 'name');
         $lastNameColumn = config('arsy-sso.user_lastname_column');
         $avatarColumn = config('arsy-sso.user_avatar_column');
 
-        $ssoId = $payload['id'] ?? $payload['sso_id'] ?? null;
+        $ssoId = $payload['id'] ?? null;
         $email = $payload['email'] ?? null;
 
         if (! $email) {
             throw new RuntimeException('El servidor SSO no devolvio un email de usuario.');
         }
 
-        $user = null;
-        if ($ssoId) {
-            $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
-        }
-        if (! $user) {
-            $user = $userModelClass::where('email', $email)->first();
+        if (! $ssoId) {
+            throw new RuntimeException('El servidor SSO no devolvió el id del usuario.');
         }
 
+        $user = $userModelClass::where('sso_id', (string) $ssoId)->first();
+
         $data = [
-            'sso_id' => $ssoId ? (string) $ssoId : ($user->sso_id ?? null),
+            'sso_id' => (string) $ssoId,
             'email' => $email,
             'sso_last_login_at' => now(),
         ];
 
+        $firstName = $payload['first_name'] ?? '';
+        $lastName = $payload['last_name'] ?? '';
+
         if ($nameColumn && $lastNameColumn) {
-            $data[$nameColumn] = trim($payload['first_name'] ?? $payload['name'] ?? 'Usuario');
-            $data[$lastNameColumn] = trim($payload['last_name'] ?? '');
+            $data[$nameColumn] = trim($firstName);
+            $data[$lastNameColumn] = trim($lastName);
         } elseif ($nameColumn) {
-            $firstName = $payload['first_name'] ?? $payload['name'] ?? 'Usuario';
-            $lastName = $payload['last_name'] ?? '';
             $data[$nameColumn] = trim($firstName . ' ' . $lastName);
         }
 
@@ -252,10 +241,22 @@ class SsoAuthenticationService
         if ($user) {
             $user->forceFill($data)->save();
         } else {
+            $this->rejectTakenEmail($userModelClass, $email);
             $user = $userModelClass::forceCreate($data);
         }
 
         return $user;
+    }
+
+    /**
+     * El login identifica solo por `sso_id`. Una cuenta local con el mismo
+     * correo se vincula a mano con `arsy-sso:link-user`, nunca aquí.
+     */
+    private function rejectTakenEmail(string $userModelClass, ?string $email): void
+    {
+        if ($email !== null && $userModelClass::where('email', $email)->exists()) {
+            throw new RuntimeException('El correo ya lo usa otra cuenta local; se vincula con php artisan arsy-sso:link-user.');
+        }
     }
 
     /**
@@ -325,5 +326,8 @@ class SsoAuthenticationService
         }
 
         Auth::logout();
+
+        session()->invalidate();
+        session()->regenerateToken();
     }
 }

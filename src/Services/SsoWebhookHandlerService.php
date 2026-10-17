@@ -2,7 +2,6 @@
 
 namespace Arsy\SSOClient\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Arsy\SSOClient\Events\SsoUserLoggedOutViaWebhook;
 use Arsy\SSOClient\Events\SsoWebhookUserUpdated;
@@ -11,6 +10,8 @@ use Arsy\SSOClient\Events\SsoWebhookUserSuspended;
 
 class SsoWebhookHandlerService
 {
+    public function __construct(private readonly SsoSessionIndex $sessionIndex) {}
+
     /**
      * Procesa el webhook recibido del proveedor de identidad (IDP).
      */
@@ -47,11 +48,10 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $userId)->first();
 
         if ($user) {
-            // Dispara evento genérico para drivers de sesión externos (ej. Redis)
             event(new SsoUserLoggedOutViaWebhook($user, $idpSessionId));
 
             if (! config('arsy-sso.auto_revoke_sessions', true)) {
@@ -59,29 +59,15 @@ class SsoWebhookHandlerService
                 return;
             }
 
-            if (config('session.driver') === 'database') {
-                if ($idpSessionId) {
-                    // Destruye únicamente la sesión asociada al IDP
-                    $sessions = DB::table('sessions')->where('user_id', $user->id)->get();
-                    $destroyedCount = 0;
-
-                    foreach ($sessions as $session) {
-                            $payload = $this->decodeSessionPayload($session->payload);
-                            if (is_array($payload) && isset($payload['sso_user_session_id']) && $payload['sso_user_session_id'] === $idpSessionId) {
-                            DB::table('sessions')->where('id', $session->id)->delete();
-                            $destroyedCount++;
-                        }
-                    }
-
-                    Log::info("[SSO] Se destruyeron {$destroyedCount} sesión(es) para el usuario ID: {$user->id} con el IDP session ID: {$idpSessionId}");
-                } else {
-                    // Destruye todas las sesiones por seguridad (sin session ID)
-                    DB::table('sessions')->where('user_id', $user->id)->delete();
-                    Log::info("[SSO] Se destruyeron TODAS las sesiones para el usuario ID: {$user->id} (no se envió IDP session ID)");
-                }
-            } else {
-                Log::warning("[SSO] Webhook de logout recibido, pero el driver de sesión no es 'database' (" . config('session.driver') . "). Se disparó el evento SsoUserLoggedOutViaWebhook para manejo manual.");
+            if (! $this->sessionIndex->enabled()) {
+                Log::warning("[SSO] Webhook de logout recibido, pero el driver de sesión no es 'redis' (" . config('session.driver') . "). Se disparó el evento SsoUserLoggedOutViaWebhook para manejo manual.");
+                return;
             }
+
+            // Sin id de sesión de la Central se cierran todas por seguridad
+            $destroyedCount = $this->sessionIndex->revoke($user->getAuthIdentifier(), $idpSessionId);
+
+            Log::info("[SSO] Se destruyeron {$destroyedCount} sesión(es) del usuario ID: {$user->id}", ['idp_session_id' => $idpSessionId]);
         }
     }
 
@@ -94,7 +80,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
@@ -102,7 +88,6 @@ class SsoWebhookHandlerService
                 'email' => $data['email'] ?? $user->email,
             ])->save();
             
-            // Dispara evento para sincronizar campos adicionales (ej. avatar)
             event(new SsoWebhookUserUpdated($user, $data));
         }
     }
@@ -116,14 +101,13 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            // Destruye todas las sesiones activas del usuario
             $this->handleSessionRevoked($user->sso_id, null);
 
-            // Aplica Soft Delete si es compatible, de lo contrario Hard Delete
+            // delete() respeta SoftDeletes si el modelo lo usa.
             if (method_exists($user, 'delete')) {
                 $user->delete();
                 Log::info("[SSO] El usuario con ID {$user->id} fue eliminado por instrucción de la Central.");
@@ -142,36 +126,15 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model', '\\App\\Models\\User');
+        $userModelClass = config('arsy-sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
-            // Destruye todas las sesiones activas del usuario
             $this->handleSessionRevoked($user->sso_id, null);
             
             Log::info("[SSO] La cuenta del usuario ID {$user->id} fue suspendida. Se cerraron todas sus sesiones.");
 
             event(new SsoWebhookUserSuspended($user));
         }
-    }
-
-    /**
-     * Decodifica el payload de la sesión (soporta JSON y PHP serializado).
-     */
-    protected function decodeSessionPayload(string $encodedPayload): ?array
-    {
-        $decoded = base64_decode($encodedPayload);
-        // Intenta decodificar JSON (Laravel 13+)
-        $payload = json_decode($decoded, true);
-        if (is_array($payload)) {
-            return $payload;
-        }
-        // Fallback a PHP serializado (versiones anteriores)
-        $payload = @unserialize($decoded);
-        if (is_array($payload)) {
-            return $payload;
-        }
-        Log::warning("[SSO] No se pudo decodificar el payload de la sesión. Formato no reconocido.");
-        return null;
     }
 }

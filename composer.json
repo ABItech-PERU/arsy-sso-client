@@ -4,15 +4,43 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.1|^8.2|^8.3",
-        "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+        "php": "^8.2",
+        "illuminate/auth": "^12.69|^13.30",
+        "illuminate/cache": "^12.69|^13.30",
+        "illuminate/console": "^12.69|^13.30",
+        "illuminate/contracts": "^12.69|^13.30",
+        "illuminate/database": "^12.69|^13.30",
+        "illuminate/events": "^12.69|^13.30",
+        "illuminate/http": "^12.69|^13.30",
+        "illuminate/log": "^12.69|^13.30",
+        "illuminate/queue": "^12.69|^13.30",
+        "illuminate/redis": "^12.69|^13.30",
+        "illuminate/routing": "^12.69|^13.30",
+        "illuminate/session": "^12.69|^13.30",
+        "illuminate/support": "^12.69|^13.30",
         "laravel/socialite": "^5.0",
         "socialiteproviders/laravelpassport": "^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0|^11.0",
+        "phpunit/phpunit": "^11.5.50|^12.5.8|^13.0"
+    },
+    "suggest": {
+        "inertiajs/inertia-laravel": "Redirige a account con Inertia::location() las peticiones X-Inertia.",
+        "laravel/sanctum": "Lo exige POST /api/auth/token (SSO_TOKEN_EXCHANGE_ENABLED) para crear el token local."
     },
     "autoload": {
         "psr-4": {
             "Arsy\\SSOClient\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Arsy\\SSOClient\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
     },
     "extra": {
         "laravel": {

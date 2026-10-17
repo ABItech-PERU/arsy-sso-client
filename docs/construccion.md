@@ -25,7 +25,7 @@ Creamos el `SsoClientServiceProvider` para registrar todos los componentes del p
 
 ## 5. Webhooks y Sincronización
 Implementamos un controlador de Webhooks protegido por validación de firma criptográfica (`hash_hmac`). El `SsoWebhookHandlerService` procesa las alertas enviadas por Account Arsy en tiempo real:
-- **Revocación de sesiones (`app.revoked`, `user.logout`):** Destruye automáticamente la sesión local si se usa base de datos.
+- **Revocación de sesiones (`app.revoked`, `session.revoked`, `session.ended`, `user.logout`):** Destruye las sesiones locales en Redis. `SessionIndexSubscriber` mantiene por usuario el hash `sso:user_sessions:{user_id}` (id de sesión local → id de sesión de la Central) en la conexión de sesiones; `SsoSessionIndex` lo lee y destruye cada sesión con el handler de sesiones, sin recorrer todas las sesiones.
 - **Actualización de usuario (`user.updated`):** Sincroniza el correo y notifica a la app satélite.
 - **Suspensión y eliminación (`user.suspended`, `user.deleted`):** Elimina el acceso bloqueando la sesión y/o aplicando un "Soft Delete" local.
 
@@ -42,4 +42,4 @@ Para evitar fricción en la navegación de aplicaciones satélite, implementamos
   3. **Mitigación CORS en SPAs:** Si esta intercepción ocurre durante un salto de Inertia.js (Ajax), el middleware emite un evento de recarga forzada (`Inertia::location`) para romper el ciclo XHR y permitir que el navegador principal complete el salto de dominios sin bloqueos de seguridad.
 
 ## 8. Versionamiento Seguro
-El `composer.json` se configuró con restricciones (`^10.0|^11.0|^12.0|^13.0` para Laravel y `^8.1|^8.2|^8.3` para PHP) para asegurar la retrocompatibilidad, permitiendo que el paquete se instale sin conflictos de dependencias en cualquier ecosistema moderno.
+El `composer.json` admite Laravel `^12.69|^13.30` y PHP `^8.2`: las ramas con parches de seguridad, desde su primera versión sin avisos. El CI prueba el piso y el techo de esos rangos.

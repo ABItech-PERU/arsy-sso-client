@@ -76,21 +76,25 @@ SSO_BILLING_SECRET=tu_billing_secret
 # Opcionales
 SSO_SERVICE_TIMEOUT=15              # segundos, llamadas servidor-a-servidor
 SSO_TOKEN_EXCHANGE_ENABLED=false    # POST /api/auth/token (requiere Sanctum)
+SSO_AUTH_ROUTES_ENABLED=true        # GET /login y POST /logout del paquete
 ```
 
 ## 3. Preparar Base de Datos
 
-Publica la configuración y ejecuta la migración que añade `sso_id` y tokens a tu tabla de usuarios:
+Publica la configuración y ejecuta las migraciones del paquete:
 
 ```bash
 php artisan vendor:publish --tag=arsy-sso-config
 php artisan migrate
 ```
 
-Añade los campos al `$fillable` de tu `app/Models/User.php`:
-```php
-protected $fillable = [ 'name', 'email', 'password', 'sso_id', 'sso_last_login_at' ];
-```
+- Añaden `sso_id` y `sso_last_login_at` a la tabla `users`.
+- Dejan `password` nullable si la columna existe, porque un usuario SSO no
+  tiene contraseña local. El cambio redefine la columna como
+  `string('password')`, la de la tabla de Laravel.
+
+El paquete escribe con `forceFill()`, así que sus columnas no van en el
+`$fillable` del modelo.
 
 ## 4. Uso del SSO Básico
 
@@ -98,9 +102,14 @@ El paquete inyecta las rutas automáticamente.
 - **Login:** `<a href="{{ route('login') }}">Iniciar Sesión</a>`
 - **Logout:** Haz un POST a `{{ route('logout') }}`. Ejecuta un Hard-Logout local y en la central.
 
+Las rutas `login` y `logout` chocan con las de auth del satélite. Quita
+las del satélite o apaga las del paquete con
+`SSO_AUTH_ROUTES_ENABLED=false`; `/auth/silent` y `/auth/callback` siguen
+activas.
+
 ## 5. Auto-Login Silencioso e Híbrido
 
-Para loguear automáticamente a usuarios que ya están en la Central, registra el middleware en tu `bootstrap/app.php` (Laravel 11+):
+Para loguear automáticamente a usuarios que ya están en la Central, registra el middleware en tu `bootstrap/app.php`:
 
 ```php
 $middleware->web(append: [
@@ -109,7 +118,7 @@ $middleware->web(append: [
 ```
 
 ### Métodos de Auto-Login (`SSO_AUTO_LOGIN_METHOD`):
-- **`oauth` (Híbrido - Recomendado):** Utiliza la cookie compartida (`ssotoken`) como un "radar" ultrarrápido. Si detecta la cookie, redirige silenciosamente a la central (`prompt=none`) una sola vez para oficializar la sesión vía OAuth, registrando al satélite en el panel de conexiones.
+- **`oauth` (Híbrido, por defecto):** Utiliza la cookie compartida (`ssotoken`) como un "radar" ultrarrápido. Si detecta la cookie, redirige silenciosamente a la central (`prompt=none`) una sola vez para oficializar la sesión vía OAuth, registrando al satélite en el panel de conexiones.
   - **Soporte Inertia.js:** Si el salto silencioso se activa desde un enlace de Inertia (Ajax), el middleware fuerza automáticamente un "Hard Reload" (`Inertia::location`) para evitar bloqueos de CORS.
 - **`cookie` (Legacy):** Lee y resuelve el HMAC directamente. Es más rápido pero no registra el satélite en las conexiones activas de la central.
 - **`none`:** Desactiva el auto-login.
@@ -118,7 +127,18 @@ $middleware->web(append: [
 
 El paquete levanta automáticamente un Webhook protegido en `/api/sso/webhook`.
 Cuando el usuario cierra sesión en la central, la central envía un evento `session.revoked` al satélite. El paquete intercepta el Webhook y **destruye automáticamente la sesión local en tiempo real** (Hard Logout).
-*Nota:* Tu satélite debe usar `SESSION_DRIVER=database` o `redis` para que la destrucción de sesiones funcione.
+*Requisito:* `SESSION_DRIVER=redis`. Al iniciar sesión (y en cada petición autenticada) el paquete registra la sesión en el hash `sso:user_sessions:{user_id}` de la conexión de sesiones (`SESSION_CONNECTION`), con caducidad de `SESSION_LIFETIME`; el webhook destruye las sesiones del índice con el handler de sesiones. Con otro driver solo se dispara `SsoUserLoggedOutViaWebhook`.
+
+### Tests sin servidor Redis
+
+`Arsy\SSOClient\Testing\InMemoryRedis` reemplaza Redis en memoria para probar el índice y el cierre de sesión único:
+
+```php
+Redis::swap($redis = new InMemoryRedis);
+config(['session.driver' => 'redis']);
+
+$redis->connection(config('session.connection'))->hgetall("sso:user_sessions:{$user->id}");
+```
 
 ## 7. Eventos (Extensibilidad)
 
@@ -137,7 +157,7 @@ public function handle(SsoUserAuthenticated $event): void
     // Campos disponibles en $idpUser->user: ver docs/satelites.md de Account.
 }
 ```
-En Laravel 11+, el autodescubrimiento registrará tu Listener inmediatamente.
+El autodescubrimiento de eventos de Laravel registrará tu Listener inmediatamente.
 
 ## 8. Llamadas servidor-a-servidor a la Central
 
@@ -166,3 +186,18 @@ $response = Http::arsyAccount(['billing:checkout'])
 clientes móviles o de escritorio del satélite. Está **desactivado por
 defecto**; actívalo con `SSO_TOKEN_EXCHANGE_ENABLED=true` solo si el modelo
 `User` usa `HasApiTokens` (Sanctum) y tiene columnas de token.
+
+## 10. Cuentas locales previas
+
+El login identifica al usuario solo por `sso_id`. Si el satélite creó
+antes una cuenta local con el mismo correo (pre-aprovisionada, sin
+`sso_id`), el login la rechaza y no la toma. Un administrador la vincula
+a mano con el `id` (UUID) del usuario en la Central:
+
+```bash
+php artisan arsy-sso:link-user ana@empresa.com 7c9e6679-7425-40de-944b-e07fc1f90ae7
+```
+
+- Solo vincula una cuenta sin `sso_id` y con un `sso_id` que ninguna otra
+  cuenta use; nunca reescribe uno existente.
+- Deja en el log un `notice` con `user_id` y `sso_id`.

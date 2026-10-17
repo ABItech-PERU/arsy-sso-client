@@ -6,7 +6,7 @@ Un paquete de Laravel diseñado para integrar aplicaciones satélite al sistema 
 
 - **Autenticación sin esfuerzo**: Configuración automática de las rutas de login, callback y logout.
 - **Auto-Login Híbrido (SSO Silencioso)**: Combina una cookie de "radar" ultrarrápida con un salto OAuth invisible de una sola vez. Garantiza que las aplicaciones satélite queden registradas en la central, integrando soporte nativo para Inertia.js (CORS) mediante recargas forzadas inteligentes (`Inertia::location`).
-- **Sincronización en tiempo real**: Escucha webhooks del servidor central para actualizar datos de usuarios, cerrar sesiones remotas o bloquear cuentas suspendidas/eliminadas de inmediato.
+- **Sincronización en tiempo real**: Escucha webhooks del servidor central para actualizar datos de usuarios, cerrar sesiones remotas o bloquear cuentas suspendidas/eliminadas de inmediato. Las sesiones viven en Redis con un índice por usuario (`SESSION_DRIVER=redis`).
 - **Altamente desacoplado**: Diseñado para no interferir con la base de datos de tu aplicación, inyectando únicamente los campos vitales (`sso_id`, `sso_last_login_at`, y `email`).
 - **Cliente servidor-a-servidor**: `Http::arsyAccount($scopes)` autentica al satélite ante la Central con `client_credentials` (token cacheado y renovación automática).
 - **Sistema de eventos**: Permite a tu aplicación satélite escuchar eventos puros (como `SsoUserAuthenticated` o `SsoWebhookUserUpdated`) para que guardes datos personalizados (nombres, avatares, roles) con total libertad.
@@ -21,8 +21,8 @@ Toda la documentación detallada se encuentra en la carpeta `docs/`.
 
 ## Requisitos
 
-- PHP 8.1 o superior.
-- Laravel 10.0, 11.0, 12.0 o 13.0
+- PHP 8.2 o superior.
+- Laravel 12 o 13; Laravel 13 exige PHP 8.3.
 
 ## Estructura de Eventos
 

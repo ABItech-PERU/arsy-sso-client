@@ -43,17 +43,17 @@ return [
     |
     */
 
-    'oauth_url' => env('SSO_OAUTH_URL', env('ARSY_OAUTH_URL')),
-    'client_id' => env('SSO_CLIENT_ID', env('ARSY_CLIENT_ID')),
-    'client_secret' => env('SSO_CLIENT_SECRET', env('ARSY_CLIENT_SECRET')),
+    'oauth_url' => env('SSO_OAUTH_URL'),
+    'client_id' => env('SSO_CLIENT_ID'),
+    'client_secret' => env('SSO_CLIENT_SECRET'),
     
     // Secreto global (Firma la cookie ssotoken)
     'shared_secret' => env('SSO_COOKIE_SECRET'),
     
     // Secretos por aplicación
     'webhooks' => [
-        'sso' => env('SSO_WEBHOOK_SECRET', env('ARSY_SSO_WEBHOOK_SECRET')),
-        'billing' => env('SSO_BILLING_SECRET', env('ARSY_BILLING_WEBHOOK_SECRET')),
+        'sso' => env('SSO_WEBHOOK_SECRET'),
+        'billing' => env('SSO_BILLING_SECRET'),
     ],
 
     /*
@@ -73,11 +73,11 @@ return [
     | Auto Revoke Sessions
     |--------------------------------------------------------------------------
     |
-    | Si está en true, el paquete intentará destruir automáticamente las
-    | sesiones locales en la base de datos (si el driver es 'database')
-    | cuando reciba un webhook de revocación desde el servidor central.
-    | Si usas Redis o prefieres hacerlo manual, ponlo en false y escucha
-    | el evento SsoUserLoggedOutViaWebhook.
+    | Si está en true, el paquete destruye las sesiones locales del usuario
+    | al recibir un webhook de revocación desde el servidor central. Exige
+    | SESSION_DRIVER=redis: las ubica con el índice por usuario
+    | (SsoSessionIndex). Para hacerlo manual, ponlo en false y escucha el
+    | evento SsoUserLoggedOutViaWebhook.
     |
     */
 
@@ -91,15 +91,14 @@ return [
     | Cuando un usuario ya tiene sesión en el servidor central (Account Arsy),
     | el satélite puede autenticarlo automáticamente sin mostrar pantalla de login.
     |
-    | - 'enabled': Activa/desactiva el auto-login silencioso.
     | - 'method': Método de autenticación:
+    |     'oauth'  — Por defecto. Usa OAuth2 prompt=none. Funciona cross-domain.
     |     'cookie' — Lee la cookie compartida ssotoken y valida HMAC. Sin redirects.
-    |     'oauth'  — Usa OAuth2 prompt=none. Funciona cross-domain.
     |     'none'   — Desactivado.
     |
     */
     'auto_login' => [
-        'method' => env('SSO_AUTO_LOGIN_METHOD', 'cookie'), // cookie | oauth | none
+        'method' => env('SSO_AUTO_LOGIN_METHOD', 'oauth'), // oauth | cookie | none
     ],
 
     /*
@@ -119,12 +118,16 @@ return [
     | Rutas opcionales
     |--------------------------------------------------------------------------
     |
+    | 'auth': GET /login y POST /logout, con nombre login y logout. Se apagan
+    | si el satélite trae sus propias rutas de auth. Activadas por defecto.
+    |
     | 'token_exchange': POST /api/auth/token canjea un token de la Central por
     | un token local (clientes móviles/escritorio). Requiere Sanctum
     | (HasApiTokens) y columnas de token en users. Desactivado por defecto.
     |
     */
     'routes' => [
+        'auth' => (bool) env('SSO_AUTH_ROUTES_ENABLED', true),
         'token_exchange' => (bool) env('SSO_TOKEN_EXCHANGE_ENABLED', false),
     ],
 
