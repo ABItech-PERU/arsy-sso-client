@@ -12,7 +12,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasColumn('users', 'password')) {
+        $password = collect(Schema::getColumns('users'))->firstWhere('name', 'password');
+
+        // Alterar una columna ya nullable reescribe la tabla y borra su comentario.
+        if ($password === null || $password['nullable']) {
             return;
         }
 
