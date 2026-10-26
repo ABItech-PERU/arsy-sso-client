@@ -27,17 +27,19 @@ composer validate
 docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/app -w /app \
   composer:2 install
 docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/app -w /app \
-  --entrypoint php composer:2 vendor/bin/phpunit
+  composer:2 test                                   # composer test
 # desde arsy-academy-app, contra su vendor/arsy/sso-client
 docker exec arsy_academy_app php artisan test --filter=Sso
 ```
 
 ## 3. Puertas de calidad
 
-Sin linters. El CI (`.github/workflows/pruebas.yml`) corre las puertas 2
-y 3 en PHP 8.2 con Laravel 12 (dependencias mínimas), 8.3 con 12 y 13 y
-8.5 con 13, con el bloqueo de avisos de Composer activo. Antes de
-entregar, estas cuatro.
+Sin linters. La CI (`.github/workflows/ci.yml`) corre en cada push a
+`main`, la rama de trabajo, y en cada PR hacia ella. Busca secretos con
+gitleaks, corre la puerta 2 y `composer audit`, y luego la puerta 3
+(`composer test`) en PHP 8.2 con Laravel 12 (dependencias mínimas), 8.3
+con 12 y 13 y 8.5 con 13, con el bloqueo de avisos de Composer activo.
+Antes de entregar, estas cuatro.
 
 1. `php -l` sin errores en cada archivo tocado.
 2. `composer validate` sin avisos.
