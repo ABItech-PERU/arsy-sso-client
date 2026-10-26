@@ -25,7 +25,7 @@ quien instala el paquete en un satélite.
 3. **CHANGELOG.** Keep a Changelog en español (`Añadido`, `Cambiado`,
    `Corregido`, `Eliminado`, `Seguridad`) bajo `## [Sin publicar]`.
    Publicar sigue `tech/laravel-package.md` regla 7, con el commit
-   `docs(changelog): registrar versión X.Y.Z`.
+   `docs(changelog): publicar la versión X.Y.Z`.
 4. **Documento nuevo.** Plano en `docs/`, en español, en `kebab-case` y
    con el tipo como prefijo (`guia-`, `referencia-`, `explicacion-`),
    enlazado desde la sección «Documentación» del README.

@@ -8,7 +8,7 @@ account, el IdP OAuth2 con Passport, vía Socialite y
 cierre de sesión único y cliente servidor a servidor.
 
 - Lo instalan `arsy-academy-app`, `arsy-coworker-app` y
-  `arsy-innova-app` con `^1.2` desde el VCS. El contrato lo fija account
+  `arsy-innova-app` con `^2.0` desde el VCS. El contrato lo fija account
   en `../../arsy-account-app/docs/satelites.md`.
 - Evoluciona a `arsy/platform-client`; tareas PC-01 a PC-09 en
   `../../arsy-architecture/tareas/platform-client.md`.
@@ -47,7 +47,7 @@ Antes de entregar, estas cuatro.
    prueba del cambio según `project/testing.md`.
 4. La suite SSO de academy (`tests/Feature/Sso/`, callback, webhooks,
    auto-login e índice de sesiones) en verde cuando el cambio la
-   alcanza. Corre contra el paquete del `vendor/` de academy (`^1.2`
+   alcanza. Corre contra el paquete del `vendor/` de academy (`^2.0`
    desde el VCS); su contenedor solo monta el repo de academy
    (`docker/compose/docker-compose.dev.yml:20`), así que un repositorio
    `path` hacia `_composer/` no se ve dentro.
@@ -79,9 +79,10 @@ Dónde va cada pieza, `core/06`; cómo se escribe, `core/08`. Proyecto en
 equipo, y su versión vive en el repositorio privado `abitech-dev/_claude`,
 con el `stack` declarado en su `claude-sync.json`.
 
-- `rules/core/`, `rules/tech/{testing,documentation}.md`, `agents/`,
-  `hooks/*.py` y las skills son copia de la base global. Se editan en
-  `~/.claude` y llegan con `sync.py guardar global` y luego
+- `rules/core/`,
+  `rules/tech/{testing,documentation,continuous-integration}.md`,
+  `agents/`, `hooks/*.py` y las skills son copia de la base global. Se
+  editan en `~/.claude` y llegan con `sync.py guardar global` y luego
   `sync.py restaurar arsy-sso-client`.
 - Las demás de `rules/tech/` vienen de la biblioteca `stacks/`;
   `tech/laravel-package.md` es idéntica en `abitech-payments-laravel`.
@@ -90,9 +91,6 @@ con el `stack` declarado en su `claude-sync.json`.
   `rule-cases.json`.
 - Una buena práctica que convenga fijar se propone como cambio en su
   regla; nunca se aplica en silencio.
-- `.agents/` guarda reglas de otra herramienta y Claude Code no las
-  carga; ante una diferencia mandan `.claude/rules/` y, en commits,
-  `core/03`.
 
 ## 6. Despliegue
 
@@ -107,5 +105,5 @@ con el `stack` declarado en su `claude-sync.json`.
 | Tema | Estado |
 |---|---|
 | Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:34-53`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
-| Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.agents/`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8); tarea DT-09 |
+| Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8); tarea DT-09 |
 | Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); `docs/guia-de-uso.md` instala `^1.1.0` (`:20,34`) y apunta a `c:/laragon/www/arsy-sso-client` (`:43`); tarea DT-10 |
