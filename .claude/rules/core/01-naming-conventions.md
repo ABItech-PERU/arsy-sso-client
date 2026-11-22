@@ -31,3 +31,16 @@ solo, qué hace.
    con plurales naturales y sin abreviaturas crípticas.
 4. **Sin tartamudeo.** El nombre no repite el contexto que ya da su
    clase o módulo.
+5. **Repositorios.** `[empresa]-[producto]-[componente]` en kebab-case,
+   siempre los tres segmentos, que son la marca o el cliente dueño, el
+   producto y un sufijo del catálogo (`-api`, `-web`, `-app`, `-cli`…).
+   Catálogo y cómo elegir, en la skill `naming-repositories`. Rige en lo
+   que crea o nombra abitech; si el cliente ya fija sus nombres, se sigue
+   su convención y el proyecto lo anota en su `CLAUDE.md`.
+   - Mal: `Arsy_CoworkerAPI`, `openchasqui-cli`, `good-money-collection`.
+   - Bien: `arsy-coworker-api`, `abitech-openchasqui-cli`,
+     `elise-actas-collection`.
+6. **Paquetes publicados.** La marca va en el scope o vendor y el
+   producto en el nombre: `@abitechdev/openchasqui-core` y
+   `@abitechdev/openchasqui` en npm, `abitech/antibot-laravel` en
+   Composer.
