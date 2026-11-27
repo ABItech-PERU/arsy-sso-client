@@ -133,7 +133,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Cliente servidor-a-servidor (Http::arsyAccount)
+    | Cliente servidor-a-servidor (Http::ssoCentral)
     |--------------------------------------------------------------------------
     |
     | Llamadas del satélite a la API de la Central con client_credentials

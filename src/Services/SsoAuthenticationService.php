@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Services;
+namespace Abitech\Sso\Services;
 
-use Arsy\SSOClient\Events\SsoUserAuthenticated;
+use Abitech\Sso\Events\SsoUserAuthenticated;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
@@ -79,11 +79,11 @@ class SsoAuthenticationService
      */
     public function exchangeToken(string $accessToken): array
     {
-        if (! method_exists(config('arsy-sso.user_model'), 'createToken')) {
+        if (! method_exists(config('sso.user_model'), 'createToken')) {
             throw new RuntimeException('El canje de token exige que el modelo de usuario use HasApiTokens de Sanctum.', 500);
         }
 
-        $ssoUrl = config('arsy-sso.oauth_url');
+        $ssoUrl = config('sso.oauth_url');
 
         try {
             $response = Http::withToken($accessToken)
@@ -141,7 +141,7 @@ class SsoAuthenticationService
      */
     public function resolveCookieSession(array $payload): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
         $ssoId = $payload['sub'] ?? null;
         $email = $payload['email'] ?? null;
 
@@ -157,7 +157,7 @@ class SsoAuthenticationService
             'sso_last_login_at' => now(),
         ];
 
-        $nameColumn = config('arsy-sso.user_name_column');
+        $nameColumn = config('sso.user_name_column');
         if ($nameColumn && isset($payload['name'])) {
             $data[$nameColumn] = trim($payload['name']);
         }
@@ -179,7 +179,7 @@ class SsoAuthenticationService
      */
     private function findOrCreateUser($idpUser): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
 
         $user = $userModelClass::where('sso_id', (string) $idpUser->getId())->first();
 
@@ -200,10 +200,10 @@ class SsoAuthenticationService
      */
     private function findOrCreateUserFromPayload(array $payload): Authenticatable
     {
-        $userModelClass = config('arsy-sso.user_model');
-        $nameColumn = config('arsy-sso.user_name_column', 'name');
-        $lastNameColumn = config('arsy-sso.user_lastname_column');
-        $avatarColumn = config('arsy-sso.user_avatar_column');
+        $userModelClass = config('sso.user_model');
+        $nameColumn = config('sso.user_name_column', 'name');
+        $lastNameColumn = config('sso.user_lastname_column');
+        $avatarColumn = config('sso.user_avatar_column');
 
         $ssoId = $payload['id'] ?? null;
         $email = $payload['email'] ?? null;
@@ -250,12 +250,12 @@ class SsoAuthenticationService
 
     /**
      * El login identifica solo por `sso_id`. Una cuenta local con el mismo
-     * correo se vincula a mano con `arsy-sso:link-user`, nunca aquí.
+     * correo se vincula a mano con `sso:link-user`, nunca aquí.
      */
     private function rejectTakenEmail(string $userModelClass, ?string $email): void
     {
         if ($email !== null && $userModelClass::where('email', $email)->exists()) {
-            throw new RuntimeException('El correo ya lo usa otra cuenta local; se vincula con php artisan arsy-sso:link-user.');
+            throw new RuntimeException('El correo ya lo usa otra cuenta local; se vincula con php artisan sso:link-user.');
         }
     }
 
@@ -265,9 +265,9 @@ class SsoAuthenticationService
     private function mapUserData($idpUser): array
     {
         $rawUser = $idpUser->user ?? [];
-        $nameColumn = config('arsy-sso.user_name_column');
-        $lastNameColumn = config('arsy-sso.user_lastname_column');
-        $avatarColumn = config('arsy-sso.user_avatar_column');
+        $nameColumn = config('sso.user_name_column');
+        $lastNameColumn = config('sso.user_lastname_column');
+        $avatarColumn = config('sso.user_avatar_column');
 
         $firstName = $rawUser['first_name'] ?? $idpUser->getName() ?? 'Usuario Default';
         $lastName = $rawUser['last_name'] ?? '';

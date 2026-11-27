@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Concerns;
+namespace Abitech\Sso\Tests\Concerns;
 
-use Arsy\SSOClient\Tests\Fixtures\User;
+use Abitech\Sso\Tests\Fixtures\User;
 
 /**
  * Tabla `users` de Laravel más la migración del paquete, en el sqlite en

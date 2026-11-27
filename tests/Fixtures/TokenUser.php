@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Fixtures;
+namespace Abitech\Sso\Tests\Fixtures;
 
 /**
  * Usuario con el `createToken()` de Sanctum, que el paquete no instala.

@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Listeners;
+namespace Abitech\Sso\Listeners;
 
-use Arsy\SSOClient\Services\SsoSessionIndex;
+use Abitech\Sso\Services\SsoSessionIndex;
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Events\Dispatcher;

@@ -5,7 +5,7 @@ paths:
   - "phpunit.xml.dist"
 ---
 
-# Pruebas (arsy/sso-client)
+# Pruebas (abitechdev/sso-laravel)
 
 DIRECTIVA: la suite corre en Orchestra Testbench sin app host, y
 `src/Testing/` es API pública que usan las pruebas de los satélites.
@@ -27,7 +27,7 @@ DIRECTIVA: la suite corre en Orchestra Testbench sin app host, y
    - Con base de datos, el trait `tests/Concerns/UsesUsersTable.php`
      (tabla `users` de Laravel, migraciones del paquete y
      `createLocalUser()`) y el modelo `tests/Fixtures/User.php`, que
-     `TestCase` fija como `arsy-sso.user_model`. Modelos,
+     `TestCase` fija como `sso.user_model`. Modelos,
      `tests/Feature/Console/LinkUserCommandTest.php` y
      `tests/Feature/Services/SsoAuthenticationServiceTest.php`.
    - Ruta web del paquete:

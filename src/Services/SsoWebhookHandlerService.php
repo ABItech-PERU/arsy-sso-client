@@ -1,12 +1,12 @@
 <?php
 
-namespace Arsy\SSOClient\Services;
+namespace Abitech\Sso\Services;
 
 use Illuminate\Support\Facades\Log;
-use Arsy\SSOClient\Events\SsoUserLoggedOutViaWebhook;
-use Arsy\SSOClient\Events\SsoWebhookUserUpdated;
-use Arsy\SSOClient\Events\SsoWebhookUserDeleted;
-use Arsy\SSOClient\Events\SsoWebhookUserSuspended;
+use Abitech\Sso\Events\SsoUserLoggedOutViaWebhook;
+use Abitech\Sso\Events\SsoWebhookUserUpdated;
+use Abitech\Sso\Events\SsoWebhookUserDeleted;
+use Abitech\Sso\Events\SsoWebhookUserSuspended;
 
 class SsoWebhookHandlerService
 {
@@ -48,13 +48,13 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
         $user = $userModelClass::where('sso_id', $userId)->first();
 
         if ($user) {
             event(new SsoUserLoggedOutViaWebhook($user, $idpSessionId));
 
-            if (! config('arsy-sso.auto_revoke_sessions', true)) {
+            if (! config('sso.auto_revoke_sessions', true)) {
                 Log::info("[SSO] Webhook de logout recibido. 'auto_revoke_sessions' está desactivado. Delegando al evento.");
                 return;
             }
@@ -80,7 +80,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
@@ -101,7 +101,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {
@@ -126,7 +126,7 @@ class SsoWebhookHandlerService
             return;
         }
 
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
         $user = $userModelClass::where('sso_id', $data['id'])->first();
 
         if ($user) {

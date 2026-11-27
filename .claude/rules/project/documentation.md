@@ -5,7 +5,7 @@ paths:
   - "CHANGELOG.md"
 ---
 
-# Documentación (arsy/sso-client)
+# Documentación (abitechdev/sso-laravel)
 
 DIRECTIVA: adapta `tech/documentation.md` a un `docs/` plano que lee
 quien instala el paquete en un satélite.

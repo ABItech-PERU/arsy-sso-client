@@ -98,7 +98,7 @@ nombre. Todos los paquetes quedan bajo la misma marca.
 | npm | `@abitechdev/[producto]-[componente]` | `@abitechdev/openchasqui-core` |
 | npm, paquete principal | `@abitechdev/[producto]` | `@abitechdev/openchasqui` |
 | Composer | `abitechdev/[producto]-[framework]` | `abitechdev/antibot-laravel` |
-| Composer, paquete de un cliente | `[cliente]/[producto]-[framework]` | `arsy/sso-laravel` |
+| Composer, paquete de un cliente | `abitechdev/[cliente]-[producto]-[framework]` | `abitechdev/arsy-academy-laravel` |
 
 ## Ejemplos prácticos
 

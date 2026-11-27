@@ -1,9 +1,9 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Providers;
+namespace Abitech\Sso\Tests\Feature\Providers;
 
-use Arsy\SSOClient\Providers\SsoClientServiceProvider;
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Providers\SsoClientServiceProvider;
+use Abitech\Sso\Tests\TestCase;
 
 class SsoClientServiceProviderTest extends TestCase
 {

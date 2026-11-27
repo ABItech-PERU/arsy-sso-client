@@ -4,7 +4,7 @@ paths:
   - "src/Http/Controllers/**"
   - "src/Services/SsoAuthenticationService.php"
   - "src/Events/SsoUserAuthenticated.php"
-  - "config/arsy-sso.php"
+  - "config/sso.php"
   - "routes/web.php"
   - "database/migrations/**"
   - "src/Console/**"
@@ -21,7 +21,7 @@ al usuario por `sso_id` y guarda de él lo mínimo.
 | --- | --- |
 | `redirect()` hacia account en una petición con `X-Inertia` | `Inertia::location($url)`, que fuerza la recarga completa |
 | Columna nueva en la migración del paquete (avatar, roles, perfil) | evento con los datos crudos de account y columna del satélite |
-| Buscar o enlazar al usuario por `email` en el login | solo `sso_id`; un correo ya usado se rechaza y se vincula con `arsy-sso:link-user` |
+| Buscar o enlazar al usuario por `email` en el login | solo `sso_id`; un correo ya usado se rechaza y se vincula con `sso:link-user` |
 | Un secreto para dos propósitos | el secreto de cada fila de la regla 6 |
 
 ## Reglas
@@ -32,7 +32,7 @@ al usuario por `sso_id` y guarda de él lo mínimo.
      cuenta local ya tiene el correo, `rejectTakenEmail()` lanza
      `RuntimeException` y nadie entra.
    - Una cuenta previa sin `sso_id` (la pre-aprovisionada de academy) se
-     vincula solo con `php artisan arsy-sso:link-user {email} {sso_id}`,
+     vincula solo con `php artisan sso:link-user {email} {sso_id}`,
      que deja un `Log::notice` con `user_id` y `sso_id`.
 2. **BD mínima.** Las migraciones solo agregan `sso_id` y
    `sso_last_login_at` y dejan `users.password` nullable si existe,
@@ -41,7 +41,7 @@ al usuario por `sso_id` y guarda de él lo mínimo.
    `user_avatar_column`); roles y perfil, al listener del satélite de
    `SsoUserAuthenticated`.
 3. **Auto-login híbrido** (`SsoAutoLogin`, alias `sso.auto_login`),
-   según `arsy-sso.auto_login.method`.
+   según `sso.auto_login.method`.
    - `oauth`, el valor por defecto y el que pide account. La cookie `ssotoken` es solo un
      radar; si existe y la sesión no tiene `sso_silent_attempted`, hace
      un único salto a `/auth/silent` (`prompt=none`), que registra la

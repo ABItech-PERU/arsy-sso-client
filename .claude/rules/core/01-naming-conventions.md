@@ -43,5 +43,5 @@ solo, qué hace.
 6. **Paquetes publicados.** La marca va en el scope o vendor y el
    producto en el nombre: `@abitechdev/openchasqui-core` y
    `@abitechdev/openchasqui` en npm, `abitechdev/antibot-laravel` en
-   Composer. El paquete de un cliente lleva su marca, como
-   `arsy/sso-laravel`.
+   Composer. El de un cliente va bajo `abitechdev`, con su marca al
+   inicio del nombre (`abitechdev/[cliente]-[producto]-[framework]`).

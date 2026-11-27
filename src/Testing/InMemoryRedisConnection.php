@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Testing;
+namespace Abitech\Sso\Testing;
 
 use BadMethodCallException;
 use Closure;

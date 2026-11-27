@@ -7,9 +7,18 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ### Cambiado
 
-- **Incompatible.** El paquete se llama `arsy/sso-laravel` y se publica en
-  Packagist. Cada app cambia `arsy/sso-client` por `arsy/sso-laravel` en su
-  `composer.json` y quita el repositorio VCS.
+- **Incompatible.** El paquete se llama `abitechdev/sso-laravel`, se publica en
+  Packagist y sirve a cualquier central en Laravel Passport. Cada app cambia
+  `arsy/sso-client` por `abitechdev/sso-laravel` y quita el repositorio VCS.
+- **Incompatible.** Los nombres ya no dicen Arsy.
+
+  | Antes | Ahora |
+  | --- | --- |
+  | `Arsy\SSOClient\…` | `Abitech\Sso\…` |
+  | `config/arsy-sso.php` y `config('arsy-sso.…')` | `config/sso.php` y `config('sso.…')` |
+  | `--tag=arsy-sso-config` y `--tag=arsy-sso-migrations` | `--tag=sso-config` y `--tag=sso-migrations` |
+  | `php artisan arsy-sso:link-user` | `php artisan sso:link-user` |
+  | `Http::arsyAccount()` | `Http::ssoCentral()` |
 
 ### Corregido
 

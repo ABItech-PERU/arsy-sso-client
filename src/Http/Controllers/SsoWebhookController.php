@@ -1,11 +1,11 @@
 <?php
 
-namespace Arsy\SSOClient\Http\Controllers;
+namespace Abitech\Sso\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
-use Arsy\SSOClient\Services\SsoWebhookHandlerService;
+use Abitech\Sso\Services\SsoWebhookHandlerService;
 
 class SsoWebhookController extends Controller
 {
@@ -24,7 +24,7 @@ class SsoWebhookController extends Controller
         Log::info('[SSO] Webhook recibido', ['event_type' => $request->input('event_type')]);
         
         $signature = $request->header('X-Arsy-Signature');
-        $secret = config('arsy-sso.webhooks.sso');
+        $secret = config('sso.webhooks.sso');
 
         // Si no hay firma o no hay secret configurado, retornar error (por seguridad).
         if (!$secret || !$signature) {
