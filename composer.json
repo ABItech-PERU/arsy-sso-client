@@ -1,8 +1,30 @@
 {
-    "name": "arsy/sso-client",
-    "description": "Cliente unificado de Single Sign-On (SSO) para aplicaciones del ecosistema Arsy.",
+    "name": "arsy/sso-laravel",
+    "description": "Conecta las apps Laravel de Arsy con account para el inicio de sesión único y la sincronización de usuarios",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "sso",
+        "oauth2",
+        "passport",
+        "socialite",
+        "single-sign-on",
+        "arsy"
+    ],
+    "homepage": "https://github.com/ABItech-PERU/arsy-sso-laravel",
+    "authors": [
+        {
+            "name": "Abimael Fernandez",
+            "homepage": "https://abitech.dev",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/ABItech-PERU/arsy-sso-laravel/issues",
+        "source": "https://github.com/ABItech-PERU/arsy-sso-laravel",
+        "security": "https://github.com/ABItech-PERU/arsy-sso-laravel/security/policy"
+    },
     "require": {
         "php": "^8.2",
         "illuminate/auth": "^12.69|^13.30",

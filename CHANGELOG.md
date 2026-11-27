@@ -5,6 +5,17 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Cambiado
+
+- **Incompatible.** El paquete se llama `arsy/sso-laravel` y se publica en
+  Packagist. Cada app cambia `arsy/sso-client` por `arsy/sso-laravel` en su
+  `composer.json` y quita el repositorio VCS.
+
+### Corregido
+
+- El archivo que instala Composer ya no lleva `docs/`, `tests/`,
+  `phpunit.xml.dist`, `.claude/` ni `CLAUDE.md`.
+
 ## [2.0.1] - 2026-10-17
 
 ### Corregido
