@@ -5,6 +5,8 @@ y versionado [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [3.0.0] - 2026-11-27
+
 ### Cambiado
 
 - **Incompatible.** El paquete se llama `abitechdev/sso-laravel`, se publica en
