@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Routes;
+namespace Abitech\Sso\Tests\Feature\Routes;
 
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Support\Facades\Route;
 
 class AuthRoutesTest extends TestCase

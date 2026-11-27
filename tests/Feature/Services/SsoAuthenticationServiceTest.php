@@ -1,11 +1,11 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Services;
+namespace Abitech\Sso\Tests\Feature\Services;
 
-use Arsy\SSOClient\Services\SsoAuthenticationService;
-use Arsy\SSOClient\Tests\Concerns\UsesUsersTable;
-use Arsy\SSOClient\Tests\Fixtures\User;
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Services\SsoAuthenticationService;
+use Abitech\Sso\Tests\Concerns\UsesUsersTable;
+use Abitech\Sso\Tests\Fixtures\User;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -71,7 +71,7 @@ class SsoAuthenticationServiceTest extends TestCase
     public function test_token_exchange_with_a_new_sso_id_does_not_take_over_an_account_with_its_email(): void
     {
         $local = $this->createLocalUser(['sso_id' => null]);
-        config(['arsy-sso.oauth_url' => 'https://account.arsy.test']);
+        config(['sso.oauth_url' => 'https://account.arsy.test']);
         Http::preventStrayRequests();
         Http::fake(['https://account.arsy.test/api/user' => Http::response([
             'id' => self::NEW_SSO_ID,

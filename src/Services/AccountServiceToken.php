@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Services;
+namespace Abitech\Sso\Services;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -34,11 +34,11 @@ class AccountServiceToken
         $response = $this->http
             ->asForm()
             ->acceptJson()
-            ->timeout((int) config('arsy-sso.service_client.timeout', 15))
+            ->timeout((int) config('sso.service_client.timeout', 15))
             ->post($this->tokenUrl(), [
                 'grant_type' => 'client_credentials',
-                'client_id' => config('arsy-sso.client_id'),
-                'client_secret' => config('arsy-sso.client_secret'),
+                'client_id' => config('sso.client_id'),
+                'client_secret' => config('sso.client_secret'),
                 'scope' => implode(' ', $this->normalize($scopes)),
             ])
             ->throw();
@@ -61,7 +61,7 @@ class AccountServiceToken
 
     private function tokenUrl(): string
     {
-        return rtrim((string) config('arsy-sso.oauth_url'), '/').'/oauth/token';
+        return rtrim((string) config('sso.oauth_url'), '/').'/oauth/token';
     }
 
     /**
@@ -69,9 +69,9 @@ class AccountServiceToken
      */
     private function cacheKey(array $scopes): string
     {
-        $fingerprint = config('arsy-sso.client_id').'|'.implode(' ', $this->normalize($scopes));
+        $fingerprint = config('sso.client_id').'|'.implode(' ', $this->normalize($scopes));
 
-        return 'arsy-sso:service-token:'.hash('sha256', $fingerprint);
+        return 'sso:service-token:'.hash('sha256', $fingerprint);
     }
 
     /**

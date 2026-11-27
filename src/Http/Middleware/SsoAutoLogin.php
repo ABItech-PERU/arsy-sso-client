@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Http\Middleware;
+namespace Abitech\Sso\Http\Middleware;
 
 use Closure;
 use Exception;
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Arsy\SSOClient\Services\SsoAuthenticationService;
+use Abitech\Sso\Services\SsoAuthenticationService;
 
 class SsoAutoLogin
 {
@@ -25,14 +25,14 @@ class SsoAutoLogin
             return $next($request);
         }
 
-        $method = config('arsy-sso.auto_login.method', 'oauth');
+        $method = config('sso.auto_login.method', 'oauth');
 
         if ($method === 'none') {
             return $next($request);
         }
 
         if ($method === 'oauth') {
-            $cookieName = config('arsy-sso.cookie.name', 'ssotoken');
+            $cookieName = config('sso.cookie.name', 'ssotoken');
             
             if ($request->hasCookie($cookieName)) {
                 if (!$request->session()->has('sso_silent_attempted')) {
@@ -53,7 +53,7 @@ class SsoAutoLogin
         }
 
         if ($method === 'cookie') {
-            $secret = (string) config('arsy-sso.shared_secret');
+            $secret = (string) config('sso.shared_secret');
 
             // Sin secreto el HMAC sería falsificable, así que falla cerrado.
             if ($secret === '') {
@@ -62,7 +62,7 @@ class SsoAutoLogin
                 return $next($request);
             }
 
-            $cookieName = config('arsy-sso.cookie.name', 'ssotoken');
+            $cookieName = config('sso.cookie.name', 'ssotoken');
             $cookieValue = $request->cookie($cookieName);
 
             if ($cookieValue) {

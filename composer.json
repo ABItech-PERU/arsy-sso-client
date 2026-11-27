@@ -1,6 +1,6 @@
 {
-    "name": "arsy/sso-laravel",
-    "description": "Conecta las apps Laravel de Arsy con account para el inicio de sesión único y la sincronización de usuarios",
+    "name": "abitechdev/sso-laravel",
+    "description": "Conecta apps Laravel con una central en Laravel Passport para el inicio de sesión único y la sincronización de usuarios",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -9,10 +9,9 @@
         "oauth2",
         "passport",
         "socialite",
-        "single-sign-on",
-        "arsy"
+        "single-sign-on"
     ],
-    "homepage": "https://github.com/ABItech-PERU/arsy-sso-laravel",
+    "homepage": "https://github.com/abitech-dev/abitech-sso-laravel",
     "authors": [
         {
             "name": "Abimael Fernandez",
@@ -21,9 +20,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/ABItech-PERU/arsy-sso-laravel/issues",
-        "source": "https://github.com/ABItech-PERU/arsy-sso-laravel",
-        "security": "https://github.com/ABItech-PERU/arsy-sso-laravel/security/policy"
+        "issues": "https://github.com/abitech-dev/abitech-sso-laravel/issues",
+        "source": "https://github.com/abitech-dev/abitech-sso-laravel",
+        "security": "https://github.com/abitech-dev/abitech-sso-laravel/security/policy"
     },
     "require": {
         "php": "^8.2",
@@ -48,17 +47,17 @@
         "phpunit/phpunit": "^11.5.50|^12.5.8|^13.0"
     },
     "suggest": {
-        "inertiajs/inertia-laravel": "Redirige a account con Inertia::location() las peticiones X-Inertia.",
+        "inertiajs/inertia-laravel": "Redirige a la central con Inertia::location() las peticiones X-Inertia.",
         "laravel/sanctum": "Lo exige POST /api/auth/token (SSO_TOKEN_EXCHANGE_ENABLED) para crear el token local."
     },
     "autoload": {
         "psr-4": {
-            "Arsy\\SSOClient\\": "src/"
+            "Abitech\\Sso\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Arsy\\SSOClient\\Tests\\": "tests/"
+            "Abitech\\Sso\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -67,7 +66,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Arsy\\SSOClient\\Providers\\SsoClientServiceProvider"
+                "Abitech\\Sso\\Providers\\SsoClientServiceProvider"
             ]
         }
     },

@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Routes;
+namespace Abitech\Sso\Tests\Feature\Routes;
 
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Support\Facades\Route;
 
 class DisabledAuthRoutesTest extends TestCase
@@ -11,7 +11,7 @@ class DisabledAuthRoutesTest extends TestCase
     {
         parent::defineEnvironment($app);
 
-        $app['config']->set('arsy-sso.routes.auth', false);
+        $app['config']->set('sso.routes.auth', false);
     }
 
     public function test_login_and_logout_are_not_registered(): void

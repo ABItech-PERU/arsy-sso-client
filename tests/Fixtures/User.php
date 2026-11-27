@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Fixtures;
+namespace Abitech\Sso\Tests\Fixtures;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 

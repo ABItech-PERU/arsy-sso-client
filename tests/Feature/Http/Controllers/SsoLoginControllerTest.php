@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Http\Controllers;
+namespace Abitech\Sso\Tests\Feature\Http\Controllers;
 
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Auth\GenericUser;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;

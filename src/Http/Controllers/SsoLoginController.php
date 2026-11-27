@@ -1,9 +1,9 @@
 <?php
 
-namespace Arsy\SSOClient\Http\Controllers;
+namespace Abitech\Sso\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use Arsy\SSOClient\Services\SsoAuthenticationService;
+use Abitech\Sso\Services\SsoAuthenticationService;
 use Illuminate\Support\Facades\Log;
 
 class SsoLoginController extends Controller
@@ -33,10 +33,10 @@ class SsoLoginController extends Controller
             $user = $this->ssoAuthService->handleCallback();
 
             if (! $user && $isSilent) {
-                return redirect()->intended(config('arsy-sso.redirect_after_login', '/'));
+                return redirect()->intended(config('sso.redirect_after_login', '/'));
             }
 
-            $redirectPath = config('arsy-sso.redirect_after_login', '/dashboard');
+            $redirectPath = config('sso.redirect_after_login', '/dashboard');
 
             return redirect()->intended($redirectPath);
         } catch (\Exception $e) {
@@ -54,8 +54,8 @@ class SsoLoginController extends Controller
             $this->ssoAuthService->logout($user);
         }
 
-        $cookieName = config('arsy-sso.cookie.name', 'ssotoken');
-        $domain = config('arsy-sso.cookie.domain');
+        $cookieName = config('sso.cookie.name', 'ssotoken');
+        $domain = config('sso.cookie.domain');
 
         return redirect('/')
             ->withCookie(cookie()->forget($cookieName, '/', $domain))

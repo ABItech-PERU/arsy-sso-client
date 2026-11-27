@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Console;
+namespace Abitech\Sso\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  */
 class LinkUserCommand extends Command
 {
-    protected $signature = 'arsy-sso:link-user
+    protected $signature = 'sso:link-user
         {email : Correo de la cuenta local sin vincular}
         {sso_id : Id (UUID) del usuario en account}';
 
@@ -20,7 +20,7 @@ class LinkUserCommand extends Command
 
     public function handle(): int
     {
-        $userModelClass = config('arsy-sso.user_model');
+        $userModelClass = config('sso.user_model');
         $email = (string) $this->argument('email');
         $ssoId = (string) $this->argument('sso_id');
 

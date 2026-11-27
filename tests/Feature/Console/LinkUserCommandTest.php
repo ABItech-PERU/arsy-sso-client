@@ -1,9 +1,9 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Console;
+namespace Abitech\Sso\Tests\Feature\Console;
 
-use Arsy\SSOClient\Tests\Concerns\UsesUsersTable;
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Tests\Concerns\UsesUsersTable;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Support\Facades\Log;
 
 class LinkUserCommandTest extends TestCase
@@ -17,7 +17,7 @@ class LinkUserCommandTest extends TestCase
         Log::spy();
         $user = $this->createLocalUser(['sso_id' => null]);
 
-        $this->artisan('arsy-sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => self::SSO_ID])
+        $this->artisan('sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => self::SSO_ID])
             ->assertSuccessful();
 
         $this->assertSame(self::SSO_ID, $user->fresh()->sso_id);
@@ -33,7 +33,7 @@ class LinkUserCommandTest extends TestCase
     {
         $user = $this->createLocalUser(['sso_id' => '0f0e0d0c-0b0a-4908-8706-050403020100']);
 
-        $this->artisan('arsy-sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => self::SSO_ID])
+        $this->artisan('sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => self::SSO_ID])
             ->expectsOutputToContain('ya está vinculada')
             ->assertFailed();
 
@@ -45,7 +45,7 @@ class LinkUserCommandTest extends TestCase
         $this->createLocalUser(['email' => 'otra@arsy.test', 'sso_id' => self::SSO_ID]);
         $user = $this->createLocalUser(['sso_id' => null]);
 
-        $this->artisan('arsy-sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => self::SSO_ID])
+        $this->artisan('sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => self::SSO_ID])
             ->expectsOutputToContain('ya pertenece a otra cuenta')
             ->assertFailed();
 
@@ -56,7 +56,7 @@ class LinkUserCommandTest extends TestCase
     {
         $user = $this->createLocalUser(['sso_id' => null]);
 
-        $this->artisan('arsy-sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => '42'])
+        $this->artisan('sso:link-user', ['email' => 'ana@arsy.test', 'sso_id' => '42'])
             ->expectsOutputToContain('UUID')
             ->assertFailed();
 
@@ -65,7 +65,7 @@ class LinkUserCommandTest extends TestCase
 
     public function test_fails_when_no_local_account_has_the_email(): void
     {
-        $this->artisan('arsy-sso:link-user', ['email' => 'nadie@arsy.test', 'sso_id' => self::SSO_ID])
+        $this->artisan('sso:link-user', ['email' => 'nadie@arsy.test', 'sso_id' => self::SSO_ID])
             ->expectsOutputToContain('No hay una cuenta local')
             ->assertFailed();
     }

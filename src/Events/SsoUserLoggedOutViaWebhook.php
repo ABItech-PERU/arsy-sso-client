@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Events;
+namespace Abitech\Sso\Events;
 
 use Illuminate\Queue\SerializesModels;
 

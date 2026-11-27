@@ -1,9 +1,9 @@
 <?php
 
-namespace Arsy\SSOClient\Tests;
+namespace Abitech\Sso\Tests;
 
-use Arsy\SSOClient\Providers\SsoClientServiceProvider;
-use Arsy\SSOClient\Tests\Fixtures\User;
+use Abitech\Sso\Providers\SsoClientServiceProvider;
+use Abitech\Sso\Tests\Fixtures\User;
 use Orchestra\Testbench\TestCase as Orchestra;
 use SocialiteProviders\Manager\ServiceProvider as SocialiteManagerServiceProvider;
 
@@ -24,7 +24,7 @@ abstract class TestCase extends Orchestra
         $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
 
         // La tabla `users` de Testbench no tiene columna de avatar.
-        $app['config']->set('arsy-sso.user_model', User::class);
-        $app['config']->set('arsy-sso.user_avatar_column', null);
+        $app['config']->set('sso.user_model', User::class);
+        $app['config']->set('sso.user_avatar_column', null);
     }
 }

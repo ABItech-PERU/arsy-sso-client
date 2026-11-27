@@ -1,12 +1,12 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Services;
+namespace Abitech\Sso\Tests\Feature\Services;
 
-use Arsy\SSOClient\Services\SsoAuthenticationService;
-use Arsy\SSOClient\Tests\Concerns\UsesUsersTable;
-use Arsy\SSOClient\Tests\Fixtures\TokenUser;
-use Arsy\SSOClient\Tests\Fixtures\User;
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Services\SsoAuthenticationService;
+use Abitech\Sso\Tests\Concerns\UsesUsersTable;
+use Abitech\Sso\Tests\Fixtures\TokenUser;
+use Abitech\Sso\Tests\Fixtures\User;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -21,8 +21,8 @@ class TokenExchangeContractTest extends TestCase
         parent::setUp();
 
         config([
-            'arsy-sso.oauth_url' => 'https://account.arsy.test',
-            'arsy-sso.user_model' => TokenUser::class,
+            'sso.oauth_url' => 'https://account.arsy.test',
+            'sso.user_model' => TokenUser::class,
         ]);
         Http::preventStrayRequests();
     }
@@ -76,7 +76,7 @@ class TokenExchangeContractTest extends TestCase
 
     public function test_a_user_model_without_sanctum_tokens_is_rejected_before_calling_account(): void
     {
-        config(['arsy-sso.user_model' => User::class]);
+        config(['sso.user_model' => User::class]);
         $this->fakeUserInfo(['id' => self::SSO_ID, 'email' => 'ana@example.com', 'first_name' => 'ANA']);
 
         $this->assertThrows(

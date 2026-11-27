@@ -1,11 +1,11 @@
 <?php
 
-namespace Arsy\SSOClient\Providers;
+namespace Abitech\Sso\Providers;
 
-use Arsy\SSOClient\Console\LinkUserCommand;
-use Arsy\SSOClient\Http\Middleware\SsoAutoLogin;
-use Arsy\SSOClient\Listeners\SessionIndexSubscriber;
-use Arsy\SSOClient\Services\AccountServiceToken;
+use Abitech\Sso\Console\LinkUserCommand;
+use Abitech\Sso\Http\Middleware\SsoAutoLogin;
+use Abitech\Sso\Listeners\SessionIndexSubscriber;
+use Abitech\Sso\Services\AccountServiceToken;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
@@ -26,16 +26,16 @@ class SsoClientServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../../config/arsy-sso.php', 'arsy-sso'
+            __DIR__.'/../../config/sso.php', 'sso'
         );
 
         // Socialite lee esta config; el satélite no toca config/services.php.
         config([
             'services.laravelpassport' => [
-                'client_id' => config('arsy-sso.client_id'),
-                'client_secret' => config('arsy-sso.client_secret'),
+                'client_id' => config('sso.client_id'),
+                'client_secret' => config('sso.client_secret'),
                 'redirect' => config('app.url') . '/auth/callback',
-                'host' => config('arsy-sso.oauth_url'),
+                'host' => config('sso.oauth_url'),
             ],
         ]);
     }
@@ -62,31 +62,31 @@ class SsoClientServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../../config/arsy-sso.php' => config_path('arsy-sso.php'),
-            ], 'arsy-sso-config');
+                __DIR__.'/../../config/sso.php' => config_path('sso.php'),
+            ], 'sso-config');
 
             $this->publishes([
                 __DIR__.'/../../database/migrations/' => database_path('migrations'),
-            ], 'arsy-sso-migrations');
+            ], 'sso-migrations');
 
             $this->commands([LinkUserCommand::class]);
         }
     }
 
     /**
-     * Http::arsyAccount(['billing:checkout'])->post('/api/v1/...') autentica
+     * Http::ssoCentral(['billing:checkout'])->post('/api/v1/...') autentica
      * al satélite con client_credentials; ante un 401 renueva el token y
      * reintenta una vez (token revocado o expirado antes de tiempo).
      */
     private function registerAccountHttpMacro(): void
     {
-        Http::macro('arsyAccount', function (array $scopes = []): PendingRequest {
+        Http::macro('ssoCentral', function (array $scopes = []): PendingRequest {
             /** @var Factory $this */
             $tokens = app(AccountServiceToken::class);
 
-            return $this->baseUrl(rtrim((string) config('arsy-sso.oauth_url'), '/'))
+            return $this->baseUrl(rtrim((string) config('sso.oauth_url'), '/'))
                 ->acceptJson()
-                ->timeout((int) config('arsy-sso.service_client.timeout', 15))
+                ->timeout((int) config('sso.service_client.timeout', 15))
                 ->withToken($tokens->get($scopes))
                 ->retry(2, 0, function (Throwable $exception, PendingRequest $request) use ($tokens, $scopes): bool {
                     if (! $exception instanceof RequestException || $exception->response->status() !== Response::HTTP_UNAUTHORIZED) {

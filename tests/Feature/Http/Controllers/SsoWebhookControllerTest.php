@@ -1,11 +1,11 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Http\Controllers;
+namespace Abitech\Sso\Tests\Feature\Http\Controllers;
 
-use Arsy\SSOClient\Events\SsoWebhookUserUpdated;
-use Arsy\SSOClient\Tests\Concerns\UsesUsersTable;
-use Arsy\SSOClient\Tests\Fixtures\User;
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Events\SsoWebhookUserUpdated;
+use Abitech\Sso\Tests\Concerns\UsesUsersTable;
+use Abitech\Sso\Tests\Fixtures\User;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
 
@@ -20,7 +20,7 @@ class SsoWebhookControllerTest extends TestCase
     public function test_user_updated_syncs_the_email_of_the_configured_user_model(): void
     {
         Event::fake([SsoWebhookUserUpdated::class]);
-        config(['arsy-sso.webhooks.sso' => self::SECRET]);
+        config(['sso.webhooks.sso' => self::SECRET]);
         $user = $this->createLocalUser(['sso_id' => self::SSO_ID]);
 
         $this->postSigned([

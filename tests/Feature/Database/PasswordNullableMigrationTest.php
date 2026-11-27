@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Tests\Feature\Database;
+namespace Abitech\Sso\Tests\Feature\Database;
 
-use Arsy\SSOClient\Tests\TestCase;
+use Abitech\Sso\Tests\TestCase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Arsy\SSOClient\Http\Controllers;
+namespace Abitech\Sso\Http\Controllers;
 
-use Arsy\SSOClient\Services\SsoAuthenticationService;
+use Abitech\Sso\Services\SsoAuthenticationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

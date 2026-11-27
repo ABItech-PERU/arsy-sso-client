@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Testing;
+namespace Abitech\Sso\Testing;
 
 use Illuminate\Contracts\Redis\Factory;
 

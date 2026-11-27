@@ -1,6 +1,6 @@
 <?php
 
-namespace Arsy\SSOClient\Services;
+namespace Abitech\Sso\Services;
 
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Facades\Redis;
