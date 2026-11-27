@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/imagenes/logo-oscuro.svg">
-    <img alt="SSO para Laravel" src="docs/imagenes/logo-claro.svg" width="320">
+    <img alt="SSO para Laravel" src="docs/imagenes/logo-claro.svg" height="80">
   </picture>
 </p>
 
