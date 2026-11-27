@@ -1,35 +1,83 @@
-# Arsy SSO Client
+# Arsy SSO Laravel
 
-Un paquete de Laravel diseñado para integrar aplicaciones satélite al sistema centralizado de autenticación de Arsy (Account Arsy). Este paquete maneja automáticamente el flujo de OAuth2 con Laravel Passport (Socialite), sincroniza las sesiones en tiempo real y protege tus aplicaciones de manera escalable.
+Conecta las apps Laravel de Arsy con account para el inicio de sesión único y la sincronización de usuarios
 
-## Características principales
+<p>
+  <a href="https://packagist.org/packages/arsy/sso-laravel"><img alt="Versión en Packagist" src="https://img.shields.io/packagist/v/arsy/sso-laravel?style=flat&label=packagist"></a>
+  <a href="https://github.com/ABItech-PERU/arsy-sso-laravel/actions/workflows/ci.yml"><img alt="Integración continua" src="https://img.shields.io/github/actions/workflow/status/ABItech-PERU/arsy-sso-laravel/ci.yml?branch=main&style=flat&label=integraci%C3%B3n%20continua"></a>
+  <img alt="Laravel 12 y 13" src="https://img.shields.io/badge/laravel-12%20y%2013-ff2d20?style=flat&logo=laravel&logoColor=white">
+  <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-2ea043?style=flat"></a>
+</p>
 
-- **Autenticación sin esfuerzo**: Configuración automática de las rutas de login, callback y logout.
-- **Auto-Login Híbrido (SSO Silencioso)**: Combina una cookie de "radar" ultrarrápida con un salto OAuth invisible de una sola vez. Garantiza que las aplicaciones satélite queden registradas en la central, integrando soporte nativo para Inertia.js (CORS) mediante recargas forzadas inteligentes (`Inertia::location`).
-- **Sincronización en tiempo real**: Escucha webhooks del servidor central para actualizar datos de usuarios, cerrar sesiones remotas o bloquear cuentas suspendidas/eliminadas de inmediato. Las sesiones viven en Redis con un índice por usuario (`SESSION_DRIVER=redis`).
-- **Altamente desacoplado**: Diseñado para no interferir con la base de datos de tu aplicación, inyectando únicamente los campos vitales (`sso_id`, `sso_last_login_at`, y `email`) y dejando `password` nullable, porque un usuario SSO no tiene contraseña local.
-- **Cliente servidor-a-servidor**: `Http::arsyAccount($scopes)` autentica al satélite ante la Central con `client_credentials` (token cacheado y renovación automática).
-- **Sistema de eventos**: Permite a tu aplicación satélite escuchar eventos puros (como `SsoUserAuthenticated` o `SsoWebhookUserUpdated`) para que guardes datos personalizados (nombres, avatares, roles) con total libertad.
+```mermaid
+flowchart LR
+  N["Navegador"] -- "GET /login" --> S["App satélite<br>con arsy/sso-laravel"]
+  S -- "OAuth2" --> A["account<br>IdP con Passport"]
+  A -- "webhook firmado" --> S
+  S -- "client_credentials" --> A
+```
 
-## Documentación
+## Características
 
-Toda la documentación detallada se encuentra en la carpeta `docs/`.
-
-- [Guía de Uso e Instalación](docs/guia-de-uso.md): Instrucciones paso a paso para instalar este paquete en una nueva aplicación satélite.
-- [Proceso de Construcción (Arquitectura)](docs/construccion.md): Documentación técnica sobre cómo y por qué se construyó el paquete con su arquitectura actual.
-- [Changelog](CHANGELOG.md): Cambios por versión.
+- Rutas de inicio de sesión, callback y cierre de sesión listas, con OAuth2
+  contra account por Socialite y Laravel Passport.
+- Inicio de sesión silencioso, que entra sin pedir datos si la persona ya
+  inició sesión en account, también desde páginas de Inertia.
+- Webhooks firmados que actualizan al usuario, cierran sus sesiones o lo
+  bloquean al suspenderlo o eliminarlo.
+- Solo agrega `sso_id` y `sso_last_login_at` a `users` y deja `password`
+  nullable, porque un usuario SSO no tiene contraseña local.
+- `Http::arsyAccount($scopes)` para llamar a account de servidor a
+  servidor, con el token en caché.
+- Eventos para guardar los datos propios de cada app, como nombre, avatar o
+  roles.
 
 ## Requisitos
 
-- PHP 8.2 o superior.
-- Laravel 12 o 13; Laravel 13 exige PHP 8.3.
+| Herramienta | Versión |
+| --- | --- |
+| PHP | 8.2 o superior; 8.3 con Laravel 13 |
+| Laravel | 12 o 13 |
+| Redis | para el cierre de sesión único, con `SESSION_DRIVER=redis` |
 
-## Estructura de Eventos
+## Inicio rápido
 
-El paquete dispara eventos clave a los que puedes suscribirte en tu aplicación para ejecutar lógica personalizada:
+```bash
+composer require arsy/sso-laravel
+php artisan vendor:publish --tag=arsy-sso-config
+php artisan migrate
+```
 
-- `Arsy\SSOClient\Events\SsoUserAuthenticated`: Cuando un usuario inicia sesión.
-- `Arsy\SSOClient\Events\SsoWebhookUserUpdated`: Cuando el usuario cambia sus datos en la Central.
-- `Arsy\SSOClient\Events\SsoUserLoggedOutViaWebhook`: Cuando la Central revoca la sesión.
-- `Arsy\SSOClient\Events\SsoWebhookUserSuspended`: Cuando la Central suspende al usuario.
-- `Arsy\SSOClient\Events\SsoWebhookUserDeleted`: Cuando la Central elimina al usuario.
+Las variables de entorno y el registro de la app en account se explican en
+la [guía de uso](docs/guia-de-uso.md).
+
+## Uso
+
+| Evento | Cuándo se dispara |
+| --- | --- |
+| `SsoUserAuthenticated` | Una persona inicia sesión |
+| `SsoWebhookUserUpdated` | La persona cambia sus datos en account |
+| `SsoUserLoggedOutViaWebhook` | account cierra su sesión |
+| `SsoWebhookUserSuspended` | account suspende al usuario |
+| `SsoWebhookUserDeleted` | account elimina al usuario |
+
+Todos viven en `Arsy\SSOClient\Events`.
+
+## Documentación
+
+| Quiero… | Documento |
+| --- | --- |
+| Instalar el paquete en una app | [guia-de-uso.md](docs/guia-de-uso.md) |
+| Entender cómo está construido | [construccion.md](docs/construccion.md) |
+| Saber por qué se publica así | [ADR 0001](docs/decisiones/0001-ramas-y-publicacion.md) |
+| Ver los cambios por versión | [CHANGELOG.md](CHANGELOG.md) |
+
+## Contribuir
+
+Los pasos y lo que revisa la integración continua están en
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Licencia
+
+Copyright © 2026 ABItech Perú. Licencia MIT, cuyo texto figura en
+[LICENSE](LICENSE).

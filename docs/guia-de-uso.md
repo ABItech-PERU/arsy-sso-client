@@ -1,6 +1,6 @@
 # Guía de Uso e Instalación (SSO Client)
 
-Bienvenido a la guía de integración del paquete `arsy-sso-client`. Esta guía documenta cómo conectar tu aplicación "Satélite" al servidor central de identidades (Account Arsy).
+Bienvenido a la guía de integración del paquete `arsy/sso-laravel`. Esta guía documenta cómo conectar tu aplicación "Satélite" al servidor central de identidades (Account Arsy).
 
 ## 0. Registro en Account Arsy
 
@@ -13,40 +13,25 @@ Guarda el **Client ID**, **Client Secret** y el **Webhook Secret** generados.
 
 ## 1. Instalación
 
-Dependiendo de dónde albergues el paquete, elige una opción:
+```bash
+composer require arsy/sso-laravel
+```
 
-- **Opción A: Packagist (Público)**
-  ```bash
-  composer require arsy/sso-client:"^1.1.0"
-  ```
+Para probar un cambio del paquete antes de publicarlo, apunta la app a la
+copia local con un repositorio `path`:
 
-- **Opción B: GitHub (Privado/VCS)**
-  Añade esto a tu `composer.json` y luego instala:
-  ```json
-  "repositories": [
-      {
-          "type": "vcs",
-          "url": "https://github.com/ABItech-PERU/arsy-sso-client"
-      }
-  ]
-  ```
-  ```bash
-  composer require arsy/sso-client:"^1.1.0"
-  ```
+```json
+"repositories": [
+    {
+        "type": "path",
+        "url": "../_composer/arsy-sso-laravel"
+    }
+]
+```
 
-- **Opción C: Local (Desarrollo)**
-  Añade la ruta local de tu paquete al `composer.json` y luego instala:
-  ```json
-  "repositories": [
-      {
-          "type": "path",
-          "url": "c:/laragon/www/arsy-sso-client"
-      }
-  ]
-  ```
-  ```bash
-  composer require arsy/sso-client *@dev
-  ```
+```bash
+composer require arsy/sso-laravel:@dev
+```
 
 ## 2. Variables de Entorno (.env)
 
