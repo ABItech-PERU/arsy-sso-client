@@ -6,20 +6,20 @@ integración continua, para que tu PR pase a la primera.
 ## Preparar el entorno
 
 ```bash
-git clone https://github.com/ABItech-PERU/arsy-sso-laravel.git
-cd arsy-sso-laravel
+git clone https://github.com/abitech-dev/abitech-sso-laravel.git
+cd abitech-sso-laravel
 composer install
 composer test
 ```
 
 Las pruebas usan Orchestra Testbench y un Redis simulado
-(`Arsy\SSOClient\Testing`). No necesitan una instancia de account.
+(`Abitech\Sso\Testing`). No necesitan una central en marcha.
 
 ## Antes de abrir el PR
 
 - Cada cambio de comportamiento lleva su prueba en `tests/`.
 - `composer validate --strict` pasa sin avisos.
-- Una variable de entorno nueva entra en `config/arsy-sso.php` y en la
+- Una variable de entorno nueva entra en `config/sso.php` y en la
   [guía de uso](docs/guia-de-uso.md).
 - Los ejemplos usan datos de prueba, nunca credenciales reales.
 

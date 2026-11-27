@@ -1,10 +1,10 @@
 # Guía de Uso e Instalación (SSO Client)
 
-Bienvenido a la guía de integración del paquete `arsy/sso-laravel`. Esta guía documenta cómo conectar tu aplicación "Satélite" al servidor central de identidades (Account Arsy).
+Bienvenido a la guía de integración del paquete `abitechdev/sso-laravel`. Esta guía documenta cómo conectar tu aplicación "Satélite" a la central de identidades, que en Arsy es account.
 
-## 0. Registro en Account Arsy
+## 0. Registro en la central
 
-Registra tu satélite en el panel de **Account Arsy**. Te pedirá tres URLs:
+Registra tu satélite en el panel de la central. Te pedirá tres URLs:
 - **Redirección OAuth:** `https://tusitio.com/auth/callback`
 - **Webhook SSO:** `https://tusitio.com/api/sso/webhook`
 - **Webhook Billing (Si aplica):** `https://tusitio.com/api/billing/webhook`
@@ -14,7 +14,7 @@ Guarda el **Client ID**, **Client Secret** y el **Webhook Secret** generados.
 ## 1. Instalación
 
 ```bash
-composer require arsy/sso-laravel
+composer require abitechdev/sso-laravel
 ```
 
 Para probar un cambio del paquete antes de publicarlo, apunta la app a la
@@ -24,13 +24,13 @@ copia local con un repositorio `path`:
 "repositories": [
     {
         "type": "path",
-        "url": "../_composer/arsy-sso-laravel"
+        "url": "../_composer/abitech-sso-laravel"
     }
 ]
 ```
 
 ```bash
-composer require arsy/sso-laravel:@dev
+composer require abitechdev/sso-laravel:@dev
 ```
 
 ## 2. Variables de Entorno (.env)
@@ -39,7 +39,7 @@ Agrega esto al `.env` del satélite:
 
 ```env
 # Central IDP
-SSO_OAUTH_URL=https://account.arsy.com
+SSO_OAUTH_URL=https://central.ejemplo.com
 
 # Credenciales OAuth
 SSO_CLIENT_ID=tu_client_id
@@ -48,7 +48,7 @@ SSO_CLIENT_SECRET=tu_client_secret
 # Secretos y Cookies
 SSO_WEBHOOK_SECRET=tu_webhook_secret
 SSO_COOKIE_SECRET=tu_cookie_secret
-SSO_COOKIE_DOMAIN=.arsy.test
+SSO_COOKIE_DOMAIN=.ejemplo.test
 SSO_COOKIE_NAME=ssotoken
 
 # Configuración SSO
@@ -69,7 +69,7 @@ SSO_AUTH_ROUTES_ENABLED=true        # GET /login y POST /logout del paquete
 Publica la configuración y ejecuta las migraciones del paquete:
 
 ```bash
-php artisan vendor:publish --tag=arsy-sso-config
+php artisan vendor:publish --tag=sso-config
 php artisan migrate
 ```
 
@@ -98,7 +98,7 @@ Para loguear automáticamente a usuarios que ya están en la Central, registra e
 
 ```php
 $middleware->web(append: [
-    \Arsy\SSOClient\Http\Middleware\SsoAutoLogin::class,
+    \Abitech\Sso\Http\Middleware\SsoAutoLogin::class,
 ]);
 ```
 
@@ -116,7 +116,7 @@ Cuando el usuario cierra sesión en la central, la central envía un evento `ses
 
 ### Tests sin servidor Redis
 
-`Arsy\SSOClient\Testing\InMemoryRedis` reemplaza Redis en memoria para probar el índice y el cierre de sesión único:
+`Abitech\Sso\Testing\InMemoryRedis` reemplaza Redis en memoria para probar el índice y el cierre de sesión único:
 
 ```php
 Redis::swap($redis = new InMemoryRedis);
@@ -130,7 +130,7 @@ $redis->connection(config('session.connection'))->hgetall("sso:user_sessions:{$u
 Si necesitas asignar roles o guardar datos adicionales al loguear, escucha el evento `SsoUserAuthenticated`:
 
 ```php
-use Arsy\SSOClient\Events\SsoUserAuthenticated;
+use Abitech\Sso\Events\SsoUserAuthenticated;
 
 public function handle(SsoUserAuthenticated $event): void
 {
@@ -139,15 +139,15 @@ public function handle(SsoUserAuthenticated $event): void
     
     // La Central no envía roles: cada satélite gestiona los suyos.
     // Ej: if ($user->roles()->doesntExist()) $user->assignRole('ESTUDIANTE');
-    // Campos disponibles en $idpUser->user: ver docs/satelites.md de Account.
+    // Campos disponibles en $idpUser->user: ver el contrato de satélites de la central.
 }
 ```
 El autodescubrimiento de eventos de Laravel registrará tu Listener inmediatamente.
 
 ## 8. Llamadas servidor-a-servidor a la Central
 
-Para consumir APIs de Account Arsy como el propio satélite (billing, etc.)
-usa el macro `Http::arsyAccount()`. Obtiene un token OAuth2
+Para consumir APIs de la central como el propio satélite (billing, etc.)
+usa el macro `Http::ssoCentral()`. Obtiene un token OAuth2
 `client_credentials` con `SSO_CLIENT_ID`/`SSO_CLIENT_SECRET`, lo cachea
 cifrado hasta poco antes de expirar y, ante un `401`, lo renueva y reintenta
 una vez.
@@ -155,7 +155,7 @@ una vez.
 ```php
 use Illuminate\Support\Facades\Http;
 
-$response = Http::arsyAccount(['billing:checkout'])
+$response = Http::ssoCentral(['billing:checkout'])
     ->post('/api/v1/checkout/sessions', $payload)
     ->throw();
 ```
@@ -180,7 +180,7 @@ antes una cuenta local con el mismo correo (pre-aprovisionada, sin
 a mano con el `id` (UUID) del usuario en la Central:
 
 ```bash
-php artisan arsy-sso:link-user ana@empresa.com 7c9e6679-7425-40de-944b-e07fc1f90ae7
+php artisan sso:link-user ana@empresa.com 7c9e6679-7425-40de-944b-e07fc1f90ae7
 ```
 
 - Solo vincula una cuenta sin `sso_id` y con un `sso_id` que ninguna otra

@@ -1,33 +1,36 @@
-# Arsy SSO Laravel
+# SSO Laravel
 
-Conecta las apps Laravel de Arsy con account para el inicio de sesión único y la sincronización de usuarios
+Conecta apps Laravel con una central en Laravel Passport para el inicio de sesión único y la sincronización de usuarios
 
 <p>
-  <a href="https://packagist.org/packages/arsy/sso-laravel"><img alt="Versión en Packagist" src="https://img.shields.io/packagist/v/arsy/sso-laravel?style=flat&label=packagist"></a>
-  <a href="https://github.com/ABItech-PERU/arsy-sso-laravel/actions/workflows/ci.yml"><img alt="Integración continua" src="https://img.shields.io/github/actions/workflow/status/ABItech-PERU/arsy-sso-laravel/ci.yml?branch=main&style=flat&label=integraci%C3%B3n%20continua"></a>
+  <a href="https://packagist.org/packages/abitechdev/sso-laravel"><img alt="Versión en Packagist" src="https://img.shields.io/packagist/v/abitechdev/sso-laravel?style=flat&label=packagist"></a>
+  <a href="https://github.com/abitech-dev/abitech-sso-laravel/actions/workflows/ci.yml"><img alt="Integración continua" src="https://img.shields.io/github/actions/workflow/status/abitech-dev/abitech-sso-laravel/ci.yml?branch=main&style=flat&label=integraci%C3%B3n%20continua"></a>
   <img alt="Laravel 12 y 13" src="https://img.shields.io/badge/laravel-12%20y%2013-ff2d20?style=flat&logo=laravel&logoColor=white">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-2ea043?style=flat"></a>
 </p>
 
 ```mermaid
 flowchart LR
-  N["Navegador"] -- "GET /login" --> S["App satélite<br>con arsy/sso-laravel"]
-  S -- "OAuth2" --> A["account<br>IdP con Passport"]
-  A -- "webhook firmado" --> S
-  S -- "client_credentials" --> A
+  N["Navegador"] -- "GET /login" --> S["App satélite<br>con abitechdev/sso-laravel"]
+  S -- "OAuth2" --> C["Central<br>con Laravel Passport"]
+  C -- "webhook firmado" --> S
+  S -- "client_credentials" --> C
 ```
+
+Sirve a cualquier empresa con una central de identidad en Laravel Passport y
+varias apps satélite. Arsy lo usa para conectar sus apps con account.
 
 ## Características
 
 - Rutas de inicio de sesión, callback y cierre de sesión listas, con OAuth2
-  contra account por Socialite y Laravel Passport.
+  contra la central por Socialite y Laravel Passport.
 - Inicio de sesión silencioso, que entra sin pedir datos si la persona ya
-  inició sesión en account, también desde páginas de Inertia.
+  inició sesión en la central, también desde páginas de Inertia.
 - Webhooks firmados que actualizan al usuario, cierran sus sesiones o lo
   bloquean al suspenderlo o eliminarlo.
 - Solo agrega `sso_id` y `sso_last_login_at` a `users` y deja `password`
   nullable, porque un usuario SSO no tiene contraseña local.
-- `Http::arsyAccount($scopes)` para llamar a account de servidor a
+- `Http::ssoCentral($scopes)` para llamar a la central de servidor a
   servidor, con el token en caché.
 - Eventos para guardar los datos propios de cada app, como nombre, avatar o
   roles.
@@ -43,25 +46,25 @@ flowchart LR
 ## Inicio rápido
 
 ```bash
-composer require arsy/sso-laravel
-php artisan vendor:publish --tag=arsy-sso-config
+composer require abitechdev/sso-laravel
+php artisan vendor:publish --tag=sso-config
 php artisan migrate
 ```
 
-Las variables de entorno y el registro de la app en account se explican en
-la [guía de uso](docs/guia-de-uso.md).
+Las variables de entorno y el registro de la app en la central se explican
+en la [guía de uso](docs/guia-de-uso.md).
 
 ## Uso
 
 | Evento | Cuándo se dispara |
 | --- | --- |
 | `SsoUserAuthenticated` | Una persona inicia sesión |
-| `SsoWebhookUserUpdated` | La persona cambia sus datos en account |
-| `SsoUserLoggedOutViaWebhook` | account cierra su sesión |
-| `SsoWebhookUserSuspended` | account suspende al usuario |
-| `SsoWebhookUserDeleted` | account elimina al usuario |
+| `SsoWebhookUserUpdated` | La persona cambia sus datos en la central |
+| `SsoUserLoggedOutViaWebhook` | La central cierra su sesión |
+| `SsoWebhookUserSuspended` | La central suspende al usuario |
+| `SsoWebhookUserDeleted` | La central elimina al usuario |
 
-Todos viven en `Arsy\SSOClient\Events`.
+Todos viven en `Abitech\Sso\Events`.
 
 ## Documentación
 

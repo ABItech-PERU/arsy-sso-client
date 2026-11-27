@@ -1,6 +1,6 @@
 # Proceso de Construcción (Arquitectura del Paquete)
 
-Este documento detalla el paso a paso de cómo fue diseñado y construido el paquete `arsy/sso-client` y las decisiones arquitectónicas clave que se tomaron para garantizar su escalabilidad.
+Este documento detalla el paso a paso de cómo fue diseñado y construido el paquete `abitechdev/sso-laravel`, que nació como `arsy/sso-client`, y las decisiones arquitectónicas clave que se tomaron para garantizar su escalabilidad.
 
 ## 1. El problema inicial
 El ecosistema Arsy cuenta con múltiples aplicaciones "satélite" (Aceleradora, Coworker, etc.) y una aplicación central (Account Arsy). Inicialmente, la lógica de autenticación SSO estaba repetida manualmente en cada satélite: los mismos controladores, los mismos servicios y las mismas rutas copiadas y pegadas. Esto generaba deuda técnica y hacía imposible actualizar el código de seguridad de forma global.
