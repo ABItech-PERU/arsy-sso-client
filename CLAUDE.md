@@ -2,15 +2,16 @@
 
 ## 1. Proyecto
 
-**arsy/sso-laravel.** Paquete Composer que conecta un satélite Arsy con
-account, el IdP OAuth2 con Passport, vía Socialite y
-`socialiteproviders/laravelpassport`. Da login y auto-login, webhooks de
+**abitechdev/sso-laravel.** Paquete Composer que conecta una app satélite
+con su central de identidad en Laravel Passport, vía Socialite y
+`socialiteproviders/laravelpassport`. En Arsy, la central es account. Da login y auto-login, webhooks de
 cierre de sesión único y cliente servidor a servidor.
 
 - Se publica en Packagist con licencia MIT. Lo instalan
   `arsy-academy-app`, `arsy-coworker-app` y `arsy-innova-app` como
-  `arsy/sso-client` `^2.0` desde el VCS, hasta que cambien al nombre nuevo. El contrato lo fija account
-  en `../../arsy-account-app/docs/satelites.md`.
+  `arsy/sso-client` `^2.0` desde el VCS, hasta que cambien a
+  `abitechdev/sso-laravel`. El contrato lo fija account en
+  `../../arsy-account-app/docs/satelites.md`.
 - Evoluciona a `arsy/platform-client`; tareas PC-01 a PC-09 en
   `../../arsy-architecture/tareas/platform-client.md`.
 - Contrato v1 sin capas de compatibilidad hasta producción (ADR 0005),
@@ -84,10 +85,10 @@ con el `stack` declarado en su `claude-sync.json`.
   `rules/tech/{testing,documentation,continuous-integration}.md`,
   `agents/`, `hooks/*.py` y las skills son copia de la base global. Se
   editan en `~/.claude` y llegan con `sync.py guardar global` y luego
-  `sync.py restaurar arsy-sso-laravel`.
+  `sync.py restaurar abitech-sso-laravel`.
 - Las demás de `rules/tech/` vienen de la biblioteca `stacks/`;
   `tech/laravel-package.md` es idéntica en `abitech-payments-laravel`.
-  Se editan aquí y vuelven con `sync.py guardar arsy-sso-laravel`.
+  Se editan aquí y vuelven con `sync.py guardar abitech-sso-laravel`.
 - Lo propio vive en `rules/project/`, `settings.json` y
   `rule-cases.json`.
 - Una buena práctica que convenga fijar se propone como cambio en su
