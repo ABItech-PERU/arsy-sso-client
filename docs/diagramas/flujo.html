@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cómo conecta SSO una app con su central</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f9fafc; color: #141b24; padding: 3rem 1rem; }
+    .frame { max-width: 1200px; width: 100%; min-width: 0; margin: 0 auto; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="diagram-container">
+      <svg viewBox="0 112 960 308" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="flujo-title flujo-desc">
+        <title id="flujo-title">Cómo conecta SSO una app con su central</title>
+        <desc id="flujo-desc">El navegador entra por la app satélite, que inicia sesión con la central por OAuth2, recibe sus webhooks, la llama de servidor a servidor y guarda el índice de sesiones en Redis.</desc>
+        <defs>
+          <marker id="flujo-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#515963"/></marker>
+          <marker id="flujo-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#1c6ccc"/></marker>
+        </defs>
+        <rect y="112" width="960" height="308" fill="#f9fafc"/>
+        <line x1="200" y1="200" x2="304" y2="200" stroke="#515963" stroke-width="1.2" marker-end="url(#flujo-arrow)"/>
+        <line x1="528" y1="164" x2="680" y2="164" stroke="#1c6ccc" stroke-width="1.4" marker-end="url(#flujo-arrow-accent)"/>
+        <line x1="680" y1="200" x2="528" y2="200" stroke="#515963" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#flujo-arrow)"/>
+        <line x1="528" y1="236" x2="680" y2="236" stroke="#515963" stroke-width="1.2" marker-end="url(#flujo-arrow)"/>
+        <line x1="416" y1="264" x2="416" y2="332" stroke="#515963" stroke-width="1.2" marker-end="url(#flujo-arrow)"/>
+        <rect x="206.0" y="175" width="92" height="16" rx="2" fill="#f9fafc"/>
+        <text x="252" y="187" fill="#515963" font-size="11" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">GET /LOGIN</text>
+        <rect x="574.0" y="139" width="60" height="16" rx="2" fill="#f9fafc"/>
+        <text x="604" y="151" fill="#515963" font-size="11" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">OAUTH2</text>
+        <rect x="586.0" y="211" width="36" height="16" rx="2" fill="#f9fafc"/>
+        <text x="604" y="223" fill="#515963" font-size="11" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">API</text>
+        <rect x="40" y="168" width="160" height="64" rx="6" fill="#f9fafc"/>
+        <rect x="40" y="168" width="160" height="64" rx="6" fill="#ffffff" stroke="#141b24" stroke-width="1"/>
+        <text x="120.0" y="198.0" fill="#141b24" font-size="16" font-family="'Inter', system-ui, sans-serif" text-anchor="middle" font-weight="600">Navegador</text>
+        <text x="120.0" y="216.0" fill="#515963" font-size="12" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle">la persona</text>
+        <rect x="304" y="136" width="224" height="128" rx="6" fill="#f9fafc"/>
+        <rect x="304" y="136" width="224" height="128" rx="6" fill="rgba(28,108,204,0.08)" stroke="#1c6ccc" stroke-width="1.4"/>
+        <text x="416.0" y="198.0" fill="#141b24" font-size="16" font-family="'Inter', system-ui, sans-serif" text-anchor="middle" font-weight="600">Tu app Laravel</text>
+        <text x="416.0" y="216.0" fill="#515963" font-size="12" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle">abitechdev/sso-laravel</text>
+        <rect x="680" y="136" width="240" height="128" rx="6" fill="#f9fafc"/>
+        <rect x="680" y="136" width="240" height="128" rx="6" fill="rgba(20,27,36,0.03)" stroke="rgba(20,27,36,0.30)" stroke-width="1"/>
+        <text x="800.0" y="198.0" fill="#141b24" font-size="16" font-family="'Inter', system-ui, sans-serif" text-anchor="middle" font-weight="600">Central</text>
+        <text x="800.0" y="216.0" fill="#515963" font-size="12" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle">Laravel Passport</text>
+        <rect x="336" y="332" width="160" height="64" rx="6" fill="#f9fafc"/>
+        <rect x="336" y="332" width="160" height="64" rx="6" fill="rgba(20,27,36,0.03)" stroke="rgba(20,27,36,0.30)" stroke-width="1"/>
+        <text x="416.0" y="362.0" fill="#141b24" font-size="16" font-family="'Inter', system-ui, sans-serif" text-anchor="middle" font-weight="600">Redis</text>
+        <text x="416.0" y="380.0" fill="#515963" font-size="12" font-family="'JetBrains Mono', ui-monospace, monospace" text-anchor="middle">índice de sesiones</text>
+        <rect x="560" y="304" width="360" height="92" rx="6" fill="#f9fafc" stroke="rgba(20,27,36,0.12)" stroke-width="0.8"/>
+        <line x1="576" y1="328" x2="608" y2="328" stroke="#1c6ccc" stroke-width="1.4" marker-end="url(#flujo-arrow-accent)"/>
+        <text x="620" y="332" fill="#515963" font-size="11" font-family="'Inter', system-ui, sans-serif">Inicio de sesión con OAuth2</text>
+        <line x1="608" y1="352" x2="576" y2="352" stroke="#515963" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#flujo-arrow)"/>
+        <text x="620" y="356" fill="#515963" font-size="11" font-family="'Inter', system-ui, sans-serif">Webhook firmado con datos, cierre o bloqueo</text>
+        <line x1="576" y1="376" x2="608" y2="376" stroke="#515963" stroke-width="1.2" marker-end="url(#flujo-arrow)"/>
+        <text x="620" y="380" fill="#515963" font-size="11" font-family="'Inter', system-ui, sans-serif">Llamada de servidor a servidor</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
