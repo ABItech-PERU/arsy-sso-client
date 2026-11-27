@@ -2,13 +2,14 @@
 
 ## 1. Proyecto
 
-**arsy/sso-client.** Paquete Composer que conecta un satélite Arsy con
+**arsy/sso-laravel.** Paquete Composer que conecta un satélite Arsy con
 account, el IdP OAuth2 con Passport, vía Socialite y
 `socialiteproviders/laravelpassport`. Da login y auto-login, webhooks de
 cierre de sesión único y cliente servidor a servidor.
 
-- Lo instalan `arsy-academy-app`, `arsy-coworker-app` y
-  `arsy-innova-app` con `^2.0` desde el VCS. El contrato lo fija account
+- Se publica en Packagist con licencia MIT. Lo instalan
+  `arsy-academy-app`, `arsy-coworker-app` y `arsy-innova-app` como
+  `arsy/sso-client` `^2.0` desde el VCS, hasta que cambien al nombre nuevo. El contrato lo fija account
   en `../../arsy-account-app/docs/satelites.md`.
 - Evoluciona a `arsy/platform-client`; tareas PC-01 a PC-09 en
   `../../arsy-architecture/tareas/platform-client.md`.
@@ -34,8 +35,8 @@ docker exec arsy_academy_app php artisan test --filter=Sso
 
 ## 3. Puertas de calidad
 
-Sin linters. La CI (`.github/workflows/ci.yml`) corre en cada push a
-`main`, la rama de trabajo, y en cada PR hacia ella. Busca secretos con
+Sin linters. La integración continua (`.github/workflows/ci.yml`) corre
+en cada push a `main`, la rama de trabajo, y en cada PR hacia ella. Busca secretos con
 gitleaks, corre la puerta 2 y `composer audit`, y luego la puerta 3
 (`composer test`) en PHP 8.2 con Laravel 12 (dependencias mínimas), 8.3
 con 12 y 13 y 8.5 con 13, con el bloqueo de avisos de Composer activo.
@@ -83,10 +84,10 @@ con el `stack` declarado en su `claude-sync.json`.
   `rules/tech/{testing,documentation,continuous-integration}.md`,
   `agents/`, `hooks/*.py` y las skills son copia de la base global. Se
   editan en `~/.claude` y llegan con `sync.py guardar global` y luego
-  `sync.py restaurar arsy-sso-client`.
+  `sync.py restaurar arsy-sso-laravel`.
 - Las demás de `rules/tech/` vienen de la biblioteca `stacks/`;
   `tech/laravel-package.md` es idéntica en `abitech-payments-laravel`.
-  Se editan aquí y vuelven con `sync.py guardar arsy-sso-client`.
+  Se editan aquí y vuelven con `sync.py guardar arsy-sso-laravel`.
 - Lo propio vive en `rules/project/`, `settings.json` y
   `rule-cases.json`.
 - Una buena práctica que convenga fijar se propone como cambio en su
@@ -95,8 +96,9 @@ con el `stack` declarado en su `claude-sync.json`.
 ## 6. Despliegue
 
 - Un paquete no se despliega; se publica según
-  `tech/laravel-package.md` regla 7. El push pide confirmación
-  (`settings.json`).
+  `tech/laravel-package.md` regla 7 y el ADR 0001. Al unir a `main` el PR
+  que fecha la versión, `release.yml` crea la etiqueta y Packagist la
+  publica. El push pide confirmación (`settings.json`).
 - Cada satélite fija la versión en su `composer.lock`. Subirla es un
   cambio de ese satélite, con su suite.
 
@@ -105,5 +107,4 @@ con el `stack` declarado en su `claude-sync.json`.
 | Tema | Estado |
 |---|---|
 | Callback interceptado | con `oauth` y la cookie, `SsoAutoLogin` (`:34-53`) también salta en el primer `/auth/callback`; se resuelve en PC-01 |
-| Distribución | sin `.gitattributes`; el `vendor/` del satélite recibe `docs/`, `tests/`, `phpunit.xml.dist`, `.claude/` y `CLAUDE.md` (`tech/laravel-package.md` regla 8); tarea DT-09 |
-| Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); `docs/guia-de-uso.md` instala `^1.1.0` (`:20,34`) y apunta a `c:/laragon/www/arsy-sso-client` (`:43`); tarea DT-10 |
+| Docs | `docs/construccion.md` narra la historia y cita un `routes/api.php` inexistente (`:22`); tarea DT-10 |
